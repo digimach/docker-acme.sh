@@ -14,9 +14,9 @@ ARG acmesh_artifacts_dir=/opt/acme.sh
 
 # Download and place acme.sh inside the container
 RUN mkdir -p "${acmesh_artifacts_dir}" \
-    && wget ${acmesh_link} -O "${acmesh_artifacts_dir}/acmesh-${acmesh_version}.tar.gz" \
-    && tar --extract --verbose --gunzip --strip 1 --file "${acmesh_artifacts_dir}/acmesh-${acmesh_version}.tar.gz" -C "${acmesh_artifacts_dir}" \
-    && rm -rf "${acmesh_artifacts_dir}/acmesh-${acmesh_version}.tar.gz" \
+    && wget ${acmesh_link} -O "/tmp/acmesh-${acmesh_version}.tar.gz" \
+    && tar --extract --verbose --gunzip --strip 1 --file "/tmp/acmesh-${acmesh_version}.tar.gz" -C "${acmesh_artifacts_dir}" \
+    && rm -rf "/tmp/acmesh-${acmesh_version}.tar.gz" \
     && "${acmesh_artifacts_dir}"/acme.sh --help
 
 FROM oraclelinux:8-slim
