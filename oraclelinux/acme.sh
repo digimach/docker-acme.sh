@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd $ACMESH_INSTALL_DIR
+cd "$ACMESH_INSTALL_DIR" || exit
 
-./acme.sh $@
+./acme.sh "$@"

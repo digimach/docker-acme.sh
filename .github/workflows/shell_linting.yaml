@@ -1,0 +1,33 @@
+name: Shell Linting
+on:
+  push:
+    branches:
+      - '*'
+    paths:
+      - '**.sh'
+      - '**.yaml'
+  pull_request:
+    branches:
+      - '*'
+    paths:
+      - '**.sh'
+      - '**.yaml'
+
+jobs:
+  ShellCheck:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install shellcheck
+      run: sudo apt-get install -y shellcheck
+    - name: Do shellcheck
+      run: shellcheck **/*.sh
+
+  ShellFormat:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install shfmt
+      run: curl -sSL https://github.com/mvdan/sh/releases/download/v3.2.2/shfmt_v3.2.2_linux_amd64 -o ~/shfmt && chmod +x ~/shfmt
+    - name: Do shfmt
+      run: ~/shfmt -l -d -i 4 .

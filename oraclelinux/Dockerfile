@@ -1,8 +1,8 @@
 FROM oraclelinux:8-slim as acmesh_artifacts
 
 # os related operations below:
-RUN microdnf update --assumeyes \
-    && microdnf clean all
+RUN microdnf update --assumeyes &&
+    microdnf clean all
 
 RUN microdnf install --assumeyes wget tar gzip
 
@@ -13,11 +13,11 @@ ARG auto_upgrade=1
 ARG acmesh_artifacts_dir=/opt/acme.sh
 
 # Download and place acme.sh inside the container
-RUN mkdir -p "${acmesh_artifacts_dir}" \
-    && wget ${acmesh_link} -O "${acmesh_artifacts_dir}/acmesh-${acmesh_version}.tar.gz" \
-    && tar --extract --verbose --gunzip --strip 1 --file "${acmesh_artifacts_dir}/acmesh-${acmesh_version}.tar.gz" -C "${acmesh_artifacts_dir}" \
-    && rm -rf "${acmesh_artifacts_dir}/acmesh-${acmesh_version}.tar.gz" \
-    && "${acmesh_artifacts_dir}"/acme.sh --help 
+RUN mkdir -p "${acmesh_artifacts_dir}" &&
+    wget ${acmesh_link} -O "${acmesh_artifacts_dir}/acmesh-${acmesh_version}.tar.gz" &&
+    tar --extract --verbose --gunzip --strip 1 --file "${acmesh_artifacts_dir}/acmesh-${acmesh_version}.tar.gz" -C "${acmesh_artifacts_dir}" &&
+    rm -rf "${acmesh_artifacts_dir}/acmesh-${acmesh_version}.tar.gz" &&
+    "${acmesh_artifacts_dir}"/acme.sh --help
 
 FROM oraclelinux:8-slim
 

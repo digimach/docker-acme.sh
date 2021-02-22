@@ -21,8 +21,7 @@ if [[ "$DOCKER_IMAGE_TAG" == master ]]; then
     AUTO_UPGRADE=1
 fi
 
-
-cd $BASE_IMAGE
+cd "$BASE_IMAGE" || exit
 
 docker buildx build \
     --tag "$DOCKER_IMAGE:$DOCKER_IMAGE_TAG" \
