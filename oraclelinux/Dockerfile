@@ -21,6 +21,11 @@ RUN mkdir -p "${acmesh_artifacts_dir}" \
 
 FROM oraclelinux:8-slim
 
+ARG acmesh_version
+ARG acmesh_link
+ARG auto_upgrade
+ARG acmesh_artifacts_dir
+
 ENV LE_WORKING_DIR /acme.sh
 ENV LE_CONFIG_HOME /acme.sh/config
 ENV LE_CERT_HOME /acme.sh/cert-home
