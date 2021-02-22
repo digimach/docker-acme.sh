@@ -5,6 +5,9 @@ on:
       - '*'
     tags:
       - '*'
+  pull_request:
+    branches:
+      - '*'
     
 jobs:       
   build:
@@ -20,7 +23,7 @@ jobs:
           DOCKER_OUTPUT: type=image,push=false
         run: docker buildx create --use && ./dockerbuild.sh oraclelinux 
       - name: build and push the image
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'push' }}
         env:
           DOCKER_OUTPUT: type=image,push=true
         run: docker buildx create --use && ./dockerbuild.sh oraclelinux 
