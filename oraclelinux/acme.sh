@@ -1,5 +1,5 @@
 #!/bin/bash -u
 
-cd "$ACMESH_ARTIFACTS_DIR" || exit
+cd "$LE_WORKING_DIR" || exit
 
-"$ACMESH_ARTIFACTS_DIR/acme.sh" "$@"
+"$LE_WORKING_DIR/acme.sh" "$@"
