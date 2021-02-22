@@ -3,8 +3,11 @@
 # Docker build script for acme.sh containers.
 
 BASE_IMAGE=$1
-PLATFORMS="${2:-linux/arm64/v8,linux/amd64,linux/arm/v6,linux/arm/v7,linux/386,linux/ppc64le,linux/s390x}"
-OUTPUT="${3:-type=image,push=true}"
+
+source "$BASE_IMAGE/env.sh"
+
+DOCKER_OUTPUT="${DOCKER_OUTPUT:-type=image,push=true}"
+SUPPORTED_ARCHITECTURES="${SUPPORTED_ARCHITECTURES}"
 DOCKER_IMAGE="digimach/acme.sh"
 DOCKER_IMAGE_TAG="${BASE_IMAGE}-dev"
 GITHUB_REF=""
@@ -25,6 +28,6 @@ cd "$BASE_IMAGE" || exit
 
 docker buildx build \
     --tag "$DOCKER_IMAGE:$DOCKER_IMAGE_TAG" \
-    --output "$OUTPUT" \
+    --output "$DOCKER_OUTPUT" \
     --build-arg AUTO_UPGRADE="$AUTO_UPGRADE" \
-    --platform "$PLATFORMS" .
+    --platform "$SUPPORTED_ARCHITECTURES" .

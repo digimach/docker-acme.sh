@@ -1,0 +1,26 @@
+name: Docker Build
+on:
+  push:
+    branches:
+      - '*'
+    tags:
+      - '*'
+    
+jobs:       
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: build the pull request
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          DOCKER_OUTPUT: type=image,push=false
+        run: docker buildx create --use && ./dockerbuild.sh oraclelinux 
+      - name: build and push the image
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          DOCKER_OUTPUT: type=image,push=true
+        run: docker buildx create --use && ./dockerbuild.sh oraclelinux 
