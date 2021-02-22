@@ -23,7 +23,7 @@ jobs:
           DOCKER_OUTPUT: type=image,push=false
         run: docker buildx create --use && ./dockerbuild.sh oraclelinux 
       - name: build and push the image
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
         env:
           DOCKER_OUTPUT: type=image,push=true
         run: docker buildx create --use && ./dockerbuild.sh oraclelinux 
