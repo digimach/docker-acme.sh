@@ -1,5 +1,5 @@
-#!/bin/bash
+#!/bin/bash -u
 
-cd "$ACMESH_INSTALL_DIR" || exit
+cd "$ACMESH_ARTIFACTS_DIR" || exit
 
-./acme.sh "$@"
+"$ACMESH_ARTIFACTS_DIR/acme.sh" "$@"
