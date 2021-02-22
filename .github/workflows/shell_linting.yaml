@@ -30,4 +30,6 @@ jobs:
     - name: Install shfmt
       run: curl -sSL https://github.com/mvdan/sh/releases/download/v3.2.2/shfmt_v3.2.2_linux_amd64 -o ~/shfmt && chmod +x ~/shfmt
     - name: Do shfmt
-      run: ~/shfmt -w -i 4 . && git diff --exit-code
+      run: |
+        ~/shfmt -w -i 4 .
+        git diff --exit-code
