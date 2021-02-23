@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        base_image: [oraclelinux, alpinelinux]
+        base_image: [alpinelinux, oraclelinux, ubuntu]
     steps:
       - name: checkout code
         uses: actions/checkout@v2
