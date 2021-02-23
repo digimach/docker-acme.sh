@@ -41,9 +41,9 @@ VOLUME $LE_CONFIG_HOME
 VOLUME $LE_CERT_HOME
 
 # Install acme.sh
-RUN apk add --no-cache openssl socat \
+RUN apk add --no-cache bash openssl socat \
     && apk -U --no-cache upgrade \
     && cd "$acmesh_artifacts_dir" || exit \
-    && ./acme.sh --install --no-cron --no-profile   
+    && ./acme.sh --install --no-cron --no-profile
 
 ENTRYPOINT ["/entrypoint.sh"]
