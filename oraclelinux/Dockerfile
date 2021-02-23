@@ -42,7 +42,7 @@ VOLUME $LE_CONFIG_HOME
 VOLUME $LE_CERT_HOME
 
 # Install acme.sh
-RUN microdnf install --assumeyes openssl socat \
+RUN microdnf install --assumeyes git openssl socat \
     && microdnf update --assumeyes \
     && microdnf clean all \
     && cd "$acmesh_artifacts_dir" || exit \
