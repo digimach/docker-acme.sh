@@ -46,8 +46,12 @@ jobs:
               ACMESH_VERSION="${GITHUB_REF#refs/heads/}"
               DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}"
           fi
+
+          source ${{ matrix.base_image }}/env.sh
+
           echo ::set-output name=tag::$DOCKER_IMAGE_TAG
           echo ::set-output name=acmesh_version::$ACMESH_VERSION
+          echo ::set-output name=supported_architectures::$SUPPORTED_ARCHITECTURES
 
       - name: Build Docker image
         env:
@@ -79,8 +83,13 @@ jobs:
       - name: Publish Image
         if: ${{ github.event_name == 'push' && ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
         env:
+          SUPPORTED_ARCHITECTURES: ${{ steps.get_parameters.outputs.supported_architectures }}
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
         run: |
-          docker pull localhost/digimach/acme.sh:$DOCKER_IMAGE_TAG
-          docker tag localhost/digimach/acme.sh:$DOCKER_IMAGE_TAG digimach/acme.sh:$DOCKER_IMAGE_TAG
-          docker push digimach/acme.sh:$DOCKER_IMAGE_TAG
+          for arch in $(echo "$SUPPORTED_ARCHITECTURES" | tr "," "\n")
+          do
+            docker image pull --platform "$arch" localhost/digimach/acme.sh:"$DOCKER_IMAGE_TAG"
+          done
+          echo "** Pull complete"
+          docker image tag localhost/digimach/acme.sh:"$DOCKER_IMAGE_TAG" digimach/acme.sh:"$DOCKER_IMAGE_TAG"
+          docker image push --all-tags digimach/acme.sh
