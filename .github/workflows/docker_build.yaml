@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        base_image: [alpinelinux, oraclelinux, ubuntu]
+        base_image: [alpinelinux, debian, oraclelinux, ubuntu]
     steps:
       - name: checkout code
         uses: actions/checkout@v2
