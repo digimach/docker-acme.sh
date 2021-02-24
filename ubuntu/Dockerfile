@@ -3,7 +3,7 @@ FROM ubuntu:latest as acmesh_artifacts
 # os related operations below:
 RUN apt-get --yes update && apt-get --yes upgrade
 
-RUN apt-get --yes install wget tar gzip
+RUN apt-get --yes install curl gzip tar
 
 # acme.sh related operations below:
 ARG acmesh_version=master
@@ -12,7 +12,7 @@ ARG acmesh_artifacts_dir=/opt/acmesh
 
 # Download and place acme.sh inside the container
 RUN mkdir -p "${acmesh_artifacts_dir}" \
-    && wget ${acmesh_link} -O "/tmp/acmesh-${acmesh_version}.tar.gz" \
+    && curl --location --remote-header-name --output "/tmp/acmesh-${acmesh_version}.tar.gz" ${acmesh_link} \
     && tar --extract --verbose --gunzip --strip 1 --file "/tmp/acmesh-${acmesh_version}.tar.gz" -C "${acmesh_artifacts_dir}" \
     && rm -rf "/tmp/acmesh-${acmesh_version}.tar.gz" \
     && "${acmesh_artifacts_dir}"/acme.sh --help
