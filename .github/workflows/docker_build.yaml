@@ -58,12 +58,27 @@ jobs:
         run: |
           ./dockerbuild.sh ${{ matrix.base_image }}
       
+      - name: Build Docker image
+        env:
+          DOCKER_IMAGE: localhost/digimach/acme.sh
+          DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
+          ACMESH_VERSION: ${{ steps.get_parameters.outputs.acmesh_version }}
+          DOCKER_OUTPUT: "type=image,push=true"
+        run: |
+          ./dockerbuild.sh ${{ matrix.base_image }}
+
+      - name: Login to Docker Hub Container Registry
+        if: ${{ github.event_name == 'push' && ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Publish Image
         if: ${{ github.event_name == 'push' && ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
         env:
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
         run: |
           docker pull localhost/digimach/acme.sh:$DOCKER_IMAGE_TAG
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
           docker tag localhost/digimach/acme.sh:$DOCKER_IMAGE_TAG digimach/acme.sh:$DOCKER_IMAGE_TAG
           docker push digimach/acme.sh:$DOCKER_IMAGE_TAG
