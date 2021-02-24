@@ -12,6 +12,12 @@ on:
 jobs:       
   build:
     runs-on: ubuntu-latest
+    services:
+      local_docker_registry:
+        image: registry:2
+        ports:
+          - 80:5000
+
     strategy:
       matrix:
         base_image: [alpinelinux, oraclelinux, ubuntu]
@@ -21,19 +27,43 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-
-      - name: build the pull request
-        if: ${{ github.event_name == 'pull_request' }}
-        env:
-          DOCKER_OUTPUT: type=image,push=false
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          driver-opts: network=host
+      
+      - name: Determine Parameters
+        id: get_parameters
         run: |
-          docker buildx create --use
-          ./dockerbuild.sh oraclelinux 
-      - name: build and push the image
+          if [[ "$GITHUB_REF" == refs/heads/master ]]; then
+              ACMESH_VERSION="${GITHUB_REF#refs/heads/}"
+              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-latest"
+          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+              ACMESH_VERSION="${GITHUB_REF#refs/tags/}"
+              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}"
+          elif [[ "$GITHUB_REF" == refs/heads/* ]]; then
+              ACMESH_VERSION="${GITHUB_REF#refs/heads/}"
+              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}"
+          fi
+          echo ::set-output name=tag::$DOCKER_IMAGE_TAG
+          echo ::set-output name=acmesh_version::$ACMESH_VERSION
+
+      - name: Build Docker image
+        env:
+          DOCKER_IMAGE: localhost/digimach/acme.sh
+          DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
+          ACMESH_VERSION: ${{ steps.get_parameters.outputs.acmesh_version }}
+          DOCKER_OUTPUT: "type=image,push=true"
+        run: |
+          ./dockerbuild.sh ${{ matrix.base_image }}
+      
+      - name: Publish Image
         if: ${{ github.event_name == 'push' && ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
         env:
-          DOCKER_OUTPUT: type=image,push=true
+          DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
         run: |
+          docker pull localhost/digimach/acme.sh:$DOCKER_IMAGE_TAG
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker buildx create --use
-          ./dockerbuild.sh ${{ matrix.base_image }} 
+          docker tag localhost/digimach/acme.sh:$DOCKER_IMAGE_TAG digimach/acme.sh:$DOCKER_IMAGE_TAG
+          docker push digimach/acme.sh:$DOCKER_IMAGE_TAG
