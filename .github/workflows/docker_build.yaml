@@ -8,19 +8,123 @@ on:
   pull_request:
     branches:
       - '*'
-    
-jobs:       
+  workflow_dispatch:
+    inputs:
+      base_images:
+        description: List of base images to build
+        default: 'alpinelinux, debian, oraclelinux, ubuntu'
+        required: false
+
+env:
+  build_all: true
+
+jobs:
+  prepare:
+    name: Create build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.prepare_matrix.outputs.matrix }}
+      skip_build: ${{ steps.prepare_matrix.outputs.skip_build }}
+      date_stamp: ${{ steps.generate_date_stamp.outputs.date_stamp }}
+      buildable_base_images: ${{ steps.get_base_images.outputs.buildable_base_images }}
+      base_images_to_build: ${{ steps.get_base_images.outputs.base_images_to_build }}
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2  
+        with:
+          fetch-depth: 0 
+
+      - name: Get base images
+        id: get_base_images
+        run: |
+          BUILDABLE_BASE_IMAGES=$(find . -mindepth 1 -maxdepth 1 -type d -not -name ".*" -printf '%f\n' | paste -d, -s -)
+          echo "::set-output name=buildable_base_images::$BUILDABLE_BASE_IMAGES"
+      
+          # github.event.workflow is only available if triggered from the workflow_dispatch
+          WORKFLOW="${{ github.event.workflow }}"
+          TMP_CHANGES_FILE="$(mktemp)"
+          BASE_IMAGES=""
+
+          if [[ -z "${WORKFLOW}" ]]; then
+            # Push event - retrieve list of changed files
+            git diff --name-only "c9bf53f9d4ca6aaa4c1cbd92743d99ed069c3194..${{ github.event.after }}" > "${TMP_CHANGES_FILE}"
+
+            # TODO: Replace the file name with the github object variable that contains the file name being executed.
+            if grep -q ".github/workflows/docker_build.yml" "${TMP_CHANGES_FILE}"; then
+              echo "** .github/workflows/docker_build.yml changed. Will rebuild all images"
+              BASE_IMAGES="$BUILDABLE_BASE_IMAGES"
+            else
+              for base_image in $(echo "$BUILDABLE_BASE_IMAGES" | tr "," "\n")
+              do
+                if grep -q "^$base_image/" "${TMP_CHANGES_FILE}"; then
+                  BASE_IMAGE="${BASE_IMAGE} ${base_image}"
+                fi
+              done
+
+              BASE_IMAGE=$(echo -e $BASE_IMAGE | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | tr " " ",")
+
+              echo "** Will rebuild images: '$BASE_IMAGE'"
+            fi
+          else
+            BASE_IMAGE=$(echo ${{ github.event.inputs.base_images }} | tr -d " ")
+            echo "WORKFLOW EVENT: Rebuilding based on parameters: $BASE_IMAGE"
+          fi
+
+          echo "::set-output name=base_images_to_build::$BASE_IMAGE"
+
+      - name: Prepare matrix
+        id: prepare_matrix
+        shell: python
+        run: |
+          import os
+          import json
+          import pprint
+
+          base_images = "${{ steps.get_base_images.outputs.base_images_to_build }}".split(",")
+          matrix = {}
+
+          matrix['job_name'] = []
+          matrix['include'] = []
+
+          for base_image in base_images:
+            with open(os.path.join(base_image, 'env.json')) as env_fp:
+              env_data = json.load(env_fp)
+              for platform in env_data['supported_platforms']:
+                job_name = "{0}-{1}".format(base_image, platform)
+                matrix['job_name'].append(job_name)
+                include_data = {}
+                include_data['job_name'] = job_name
+                include_data['base_image'] = base_image
+                include_data['platform'] = platform
+                matrix['include'].append(include_data)
+          
+          if not base_images:
+            print("::set-output name=skip_build::true")
+          else:
+            print("::set-output name=skip_build::false")
+            
+          pprint.pprint(matrix)
+          print("::set-output name=matrix::{0}".format(json.dumps(matrix)))
+      
+      - name: Generate Date stamp
+        id: generate_date_stamp
+        run: |
+          echo "::set-output name=date_stamp::$(date +'%Y%m%d')"
+
   build:
+    needs: prepare
+    if: ${{ needs.prepare.outputs.skip_build == 'false' }}
+    strategy:
+      matrix: ${{fromJson(needs.prepare.outputs.matrix)}}
+      fail-fast: false
+
     runs-on: ubuntu-latest
     services:
       local_docker_registry:
         image: registry:2
         ports:
           - 80:5000
-
-    strategy:
-      matrix:
-        base_image: [alpinelinux, debian, oraclelinux, ubuntu]
     steps:
       - name: checkout code
         uses: actions/checkout@v2
@@ -38,36 +142,34 @@ jobs:
         run: |
           if [[ "$GITHUB_REF" == refs/heads/master ]]; then
               ACMESH_VERSION="${GITHUB_REF#refs/heads/}"
-              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-latest"
+              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-latest-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
           elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
               ACMESH_VERSION="${GITHUB_REF#refs/tags/}"
-              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}"
+              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")
           elif [[ "$GITHUB_REF" == refs/heads/* ]]; then
               ACMESH_VERSION="${GITHUB_REF#refs/heads/}"
-              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}"
+              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")
           fi
-
-          source ${{ matrix.base_image }}/env.sh
 
           echo ::set-output name=tag::$DOCKER_IMAGE_TAG
           echo ::set-output name=acmesh_version::$ACMESH_VERSION
-          echo ::set-output name=supported_architectures::$SUPPORTED_ARCHITECTURES
 
-      - name: Build Docker image
-        env:
-          DOCKER_IMAGE: localhost/digimach/acme.sh
-          DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
-          ACMESH_VERSION: ${{ steps.get_parameters.outputs.acmesh_version }}
-          DOCKER_OUTPUT: "type=image,push=true"
-        run: |
-          ./dockerbuild.sh ${{ matrix.base_image }}
-      
+      - name: Build image
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{ matrix.base_image }}
+          platforms: ${{ matrix.platform }}
+          push: true
+          build-args: |
+            "acmesh_version=${{ steps.get_parameters.outputs.acmesh_version }}"
+          tags: |
+            "localhost/digimach/acme.sh:${{ steps.get_parameters.outputs.tag }}"
+
+     
       - name: Test Docker image
         env:
           DOCKER_IMAGE: localhost/digimach/acme.sh
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
-          ACMESH_VERSION: ${{ steps.get_parameters.outputs.acmesh_version }}
-          DOCKER_OUTPUT: "type=image,push=true"
         run: |
           docker run -t "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG" _ ls -alrt /acmesh/
           docker run -t "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG" --help
@@ -83,13 +185,72 @@ jobs:
       - name: Publish Image
         if: ${{ github.event_name == 'push' && ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
         env:
-          SUPPORTED_ARCHITECTURES: ${{ steps.get_parameters.outputs.supported_architectures }}
+          DOCKER_IMAGE: localhost/digimach/acme.sh
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
         run: |
-          for arch in $(echo "$SUPPORTED_ARCHITECTURES" | tr "," "\n")
-          do
-            docker image pull --platform "$arch" localhost/digimach/acme.sh:"$DOCKER_IMAGE_TAG"
-          done
+          docker image pull --platform "${{ matrix.platform }}" "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG"
           echo "** Pull complete"
           docker image tag localhost/digimach/acme.sh:"$DOCKER_IMAGE_TAG" digimach/acme.sh:"$DOCKER_IMAGE_TAG"
-          docker image push --all-tags digimach/acme.sh
+          echo "** Tagging complete"
+          docker image push digimach/acme.sh:"$DOCKER_IMAGE_TAG"
+          echo "** Push complete"
+
+      - name: Create Manifest Entry
+        if: ${{ github.event_name == 'push' && ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+        env:
+          DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
+        run: |
+          echo "$DOCKER_IMAGE_TAG" > /tmp/manifest.txt
+      
+      - name: Upload manifest file
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.get_parameters.outputs.tag }}
+          path: /tmp/manifest.txt
+
+  manifest:
+    needs:
+      - prepare
+      - build
+    if: ${{ github.event_name == 'push' && ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all manifest artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: manifests/
+
+      - name: Login to Docker Hub Container Registry
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Create Manifest
+        shell: python
+        run: |
+          import subprocess
+          import os
+
+          manifests_data = {}
+
+          for tag in os.listdir('manifests'):
+            manifest_name = "-".join(tag.split("-")[:3])
+            manifests_data.setdefault(manifest_name, [])
+            manifests_data[manifest_name].append("--amend digimach/acme.sh:" + tag)
+
+          
+          for manifest_name, ammend_tags in manifests_data.items():
+            cmd = "docker manifest create digimach/acme.sh:{0} {1}".format(manifest_name, " ".join(ammend_tags))
+            print(cmd)
+            subprocess.check_call(cmd.split(" "))
+            print("** Created manifest:", manifest_name)
+
+            cmd = "docker manifest push digimach/acme.sh:{0}".format(manifest_name)
+            print(cmd)
+            subprocess.check_call(cmd.split(" "))
+            print("** Pushed manifest:", manifest_name)
+
+      
+
+
