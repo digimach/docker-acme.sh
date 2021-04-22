@@ -35,7 +35,7 @@ jobs:
         with:
           fetch-depth: 0 
 
-      - name: Get base images
+      - name: Get base images to build
         id: get_base_images
         run: |
           BUILDABLE_BASE_IMAGES=$(find . -mindepth 1 -maxdepth 1 -type d -not -name ".*" -printf '%f\n' | paste -d, -s -)
@@ -212,7 +212,7 @@ jobs:
     needs:
       - prepare
       - build
-    if: ${{ github.event_name == 'push' && ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
     runs-on: ubuntu-latest
     steps:
       - name: Download all manifest artifacts
