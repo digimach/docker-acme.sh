@@ -142,7 +142,7 @@ jobs:
         run: |
           if [[ "$GITHUB_REF" == refs/heads/master ]]; then
               ACMESH_VERSION="${GITHUB_REF#refs/heads/}"
-              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-latest-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
+              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
           elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
               ACMESH_VERSION="${GITHUB_REF#refs/tags/}"
               DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")
@@ -208,7 +208,7 @@ jobs:
           name: ${{ steps.get_parameters.outputs.tag }}
           path: /tmp/manifest.txt
 
-  dated_manifest:
+  dated_os_based_manifest:
     needs:
       - prepare
       - build
@@ -226,7 +226,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Create Dated Manifest
+      - name: Create Dated OS Based Manifest
         shell: python
         run: |
           import subprocess
@@ -236,6 +236,51 @@ jobs:
 
           for tag in os.listdir('manifests'):
             manifest_name = "-".join(tag.split("-")[:3])
+            manifests_data.setdefault(manifest_name, [])
+            manifests_data[manifest_name].append("--amend digimach/acme.sh:" + tag)
+
+          
+          for manifest_name, ammend_tags in manifests_data.items():
+            cmd = "docker manifest create digimach/acme.sh:{0} {1}".format(manifest_name, " ".join(ammend_tags))
+            print(cmd)
+            subprocess.check_call(cmd.split(" "))
+            print("** Created manifest:", manifest_name)
+
+            cmd = "docker manifest push digimach/acme.sh:{0}".format(manifest_name)
+            print(cmd)
+            subprocess.check_call(cmd.split(" "))
+            print("** Pushed manifest:", manifest_name)
+
+  dynamic_os_based_manifest:
+    needs:
+      - prepare
+      - build
+    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all manifest artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: manifests/
+
+      - name: Login to Docker Hub Container Registry
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Create Dynamic OS Based Manifest
+        shell: python
+        run: |
+          import subprocess
+          import os
+          import re
+
+          manifests_data = {}
+
+          for tag in os.listdir('manifests'):
+            manifest_name = "-".join(tag.split("-")[:2])
+            manifest_name = re.sub('^(.*)-master$', '\\1-latest', manifest_name)
             manifests_data.setdefault(manifest_name, [])
             manifests_data[manifest_name].append("--amend digimach/acme.sh:" + tag)
 
@@ -269,18 +314,30 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Create Dynamic Manifest
+      - name: Create Manifest
         shell: python
         run: |
           import subprocess
           import os
+          import re
 
           manifests_data = {}
 
           for tag in os.listdir('manifests'):
-            manifest_name = "-".join(tag.split("-")[:2])
-            manifests_data.setdefault(manifest_name, [])
-            manifests_data[manifest_name].append("--amend digimach/acme.sh:" + tag)
+            image_base_os = tag.split("-")[0]
+            acmesh_version = tag.split("-")[1]
+
+            if image_base_os == "ubuntu":
+              if acmesh_version == "master":
+                manifest_name = "latest"
+                manifests_data.setdefault(manifest_name, [])
+                manifests_data[manifest_name].append("--amend digimach/acme.sh:" + tag)
+              elif acmesh_version == "2.8.8":
+                manifest_name = "stable"
+                manifests_data.setdefault(manifest_name, [])
+                manifests_data[manifest_name].append("--amend digimach/acme.sh:" + tag)
+            else:
+              continue
 
           
           for manifest_name, ammend_tags in manifests_data.items():
