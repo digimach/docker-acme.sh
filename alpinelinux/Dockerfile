@@ -44,6 +44,6 @@ VOLUME $LE_CERT_HOME
 RUN apk add --no-cache bash wget curl git openssl socat \
     && apk -U --no-cache upgrade \
     && cd "$acmesh_artifacts_dir" || exit \
-    && ./acme.sh --install --no-cron --no-profile
+    && ./acme.sh --install --no-cron --no-profile --auto-upgrade=0
 
 ENTRYPOINT ["/entrypoint.sh"]
