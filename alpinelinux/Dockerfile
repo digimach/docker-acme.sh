@@ -3,7 +3,7 @@ FROM alpine:latest as acmesh_artifacts
 # os related operations below:
 RUN apk -U --no-cache upgrade
 
-RUN apk add --no-cache curl gzip tar 
+RUN apk add --no-cache curl gzip tar
 
 # acme.sh related operations below:
 ARG acmesh_version=master
