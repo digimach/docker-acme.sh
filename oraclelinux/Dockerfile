@@ -46,6 +46,7 @@ RUN microdnf install --assumeyes bash wget curl git openssl socat \
     && microdnf update --assumeyes \
     && microdnf clean all \
     && cd "$acmesh_artifacts_dir" || exit \
-    && ./acme.sh --install --no-cron --no-profile   
+    && ./acme.sh --install --no-cron --no-profile \
+    && chmod -R +x "$LE_WORKING_DIR"
 
 ENTRYPOINT ["/entrypoint.sh"]

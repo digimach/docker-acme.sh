@@ -48,6 +48,7 @@ RUN apt-get update \
     && apt-get --yes purge \
     && apt-get --yes clean \
     && cd "$acmesh_artifacts_dir" || exit \
-    && ./acme.sh --install --no-cron --no-profile
+    && ./acme.sh --install --no-cron --no-profile \
+    && chmod -R +x "$LE_WORKING_DIR"
 
 ENTRYPOINT ["/entrypoint.sh"]
