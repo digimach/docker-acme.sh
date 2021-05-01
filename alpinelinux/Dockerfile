@@ -58,4 +58,4 @@ RUN apk add --no-cache bash wget curl git openssl socat \
     && /tmp/s6-overlay-amd64-installer / \
     && rm -rf /tmp/s6-overlay-amd64-installer
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/init"]
