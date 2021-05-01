@@ -5,10 +5,11 @@ RUN apk -U --no-cache upgrade
 
 RUN apk add --no-cache curl gzip tar 
 
-# acme.sh related operations below:
+# Set ARGS
 ARG acmesh_version=master
 ARG acmesh_link="https://github.com/acmesh-official/acme.sh/archive/${acmesh_version}.tar.gz"
 ARG acmesh_artifacts_dir=/opt/acmesh
+ARG s6_overlay_version=2.2.0.3
 
 # Download and place acme.sh inside the container
 RUN mkdir -p "${acmesh_artifacts_dir}" \
@@ -17,19 +18,26 @@ RUN mkdir -p "${acmesh_artifacts_dir}" \
     && rm -rf "/tmp/acmesh-${acmesh_version}.tar.gz" \
     && "${acmesh_artifacts_dir}"/acme.sh --help
 
+# Download and install s6-overlay-builder
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-amd64-installer /tmp/
+RUN chmod +x /tmp/s6-overlay-amd64-installer
+
+ENTRYPOINT ["/init"]
+
 FROM alpine:latest
 
 ARG acmesh_artifacts_dir=/opt/acmesh
 ARG auto_upgrade=0
 ARG acme_working_dir=/usr/lib/acmesh
 
-ENV LE_WORKING_DIR "$acme_working_dir"
-ENV LE_CONFIG_HOME /acmesh/config
-ENV LE_CERT_HOME /acmesh/cert-home
+ENV LE_WORKING_DIR="$acme_working_dir"
+ENV LE_CONFIG_HOME=/acmesh/config
+ENV LE_CERT_HOME=/acmesh/cert-home
 
 ENV AUTO_UPGRADE "$auto_upgrade"
 
 COPY --from=acmesh_artifacts "$acmesh_artifacts_dir" "$acmesh_artifacts_dir"
+COPY --from=acmesh_artifacts "/tmp/s6-overlay-amd64-installer" "/tmp/s6-overlay-amd64-installer"
 
 # Place the custom acme.sh executable script that does
 # pre-execution actions and then calls acme.sh in the $ACMESH_INSTALL_DIR
@@ -40,11 +48,14 @@ ADD entrypoint.sh /entrypoint.sh
 VOLUME $LE_CONFIG_HOME
 VOLUME $LE_CERT_HOME
 
-# Install acme.sh
+# Install acme.sh 
 RUN apk add --no-cache bash wget curl git openssl socat \
     && apk -U --no-cache upgrade \
     && cd "$acmesh_artifacts_dir" || exit \
     && ./acme.sh --install --no-cron --no-profile \
-    && chmod -R +x "$LE_WORKING_DIR"
+    && chmod -R +x "$LE_WORKING_DIR" \
+# install s6-overlay
+    && /tmp/s6-overlay-amd64-installer / \
+    && rm -rf /tmp/s6-overlay-amd64-installer
 
 ENTRYPOINT ["/entrypoint.sh"]
