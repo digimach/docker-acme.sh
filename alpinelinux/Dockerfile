@@ -49,13 +49,15 @@ VOLUME $LE_CONFIG_HOME
 VOLUME $LE_CERT_HOME
 
 # Install acme.sh 
-RUN apk add --no-cache bash wget curl git openssl socat \
+RUN apk add --no-cache bash wget curl git openssl shadow socat \
     && apk -U --no-cache upgrade \
     && cd "$acmesh_artifacts_dir" || exit \
     && ./acme.sh --install --no-cron --no-profile \
     && chmod -R +x "$LE_WORKING_DIR" \
 # install s6-overlay
     && /tmp/s6-overlay-amd64-installer / \
-    && rm -rf /tmp/s6-overlay-amd64-installer
-
+    && rm -rf /tmp/s6-overlay-amd64-installer \
+# add group container and add new user container to it
+    && addgroup container \
+    && adduser -HD -h ${LE_CONFIG_HOME} -s /bin/false -G container container
 ENTRYPOINT ["/init"]
