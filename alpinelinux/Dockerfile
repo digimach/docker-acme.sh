@@ -22,8 +22,6 @@ RUN mkdir -p "${acmesh_artifacts_dir}" \
 ADD https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-amd64-installer /tmp/
 RUN chmod +x /tmp/s6-overlay-amd64-installer
 
-ENTRYPOINT ["/init"]
-
 FROM alpine:latest
 
 ARG acmesh_artifacts_dir=/opt/acmesh
@@ -60,4 +58,5 @@ RUN apk add --no-cache bash wget curl git openssl shadow socat \
 # add group container and add new user container to it
     && addgroup container \
     && adduser -HD -h ${LE_CONFIG_HOME} -s /bin/false -G container container
+
 ENTRYPOINT ["/init"]
