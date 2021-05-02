@@ -1,7 +1,8 @@
 FROM ubuntu:latest as acmesh_artifacts
 
 # os related operations below:
-RUN apt-get --yes update && apt-get --yes upgrade
+RUN apt-get --yes update \
+    && apt-get --yes upgrade
 
 RUN apt-get --yes install curl gzip tar
 
@@ -28,23 +29,20 @@ ARG acmesh_artifacts_dir=/opt/acmesh
 ARG auto_upgrade=0
 ARG acme_working_dir=/usr/lib/acmesh
 
+COPY --from=acmesh_artifacts "$acmesh_artifacts_dir" "$acmesh_artifacts_dir"
+COPY --from=acmesh_artifacts "/tmp/s6-overlay-amd64-installer" "/tmp/s6-overlay-amd64-installer"
+
+# Set runtime variables
 ENV LE_WORKING_DIR "$acme_working_dir"
 ENV LE_CONFIG_HOME /acmesh/config
 ENV LE_CERT_HOME /acmesh/cert-home
 
 ENV AUTO_UPGRADE "$auto_upgrade"
 
-COPY --from=acmesh_artifacts "$acmesh_artifacts_dir" "$acmesh_artifacts_dir"
-COPY --from=acmesh_artifacts "/tmp/s6-overlay-amd64-installer" "/tmp/s6-overlay-amd64-installer"
+ENV PUID=1001
+ENV PGID=1001
 
-# Place the custom acme.sh executable script that does
-# pre-execution actions and then calls acme.sh in the $ACMESH_INSTALL_DIR
-ADD acme.sh /usr/local/bin/acme.sh
-
-ADD entrypoint.sh /entrypoint.sh
-
-VOLUME $LE_CONFIG_HOME
-VOLUME $LE_CERT_HOME
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
 
 # Install acme.sh
 RUN apt-get update \
@@ -59,5 +57,10 @@ RUN apt-get update \
     # install s6-overlay
     && /tmp/s6-overlay-amd64-installer / \
     && rm -rf /tmp/s6-overlay-amd64-installer
+
+COPY root/ /
+
+VOLUME $LE_CONFIG_HOME
+VOLUME $LE_CERT_HOME
 
 ENTRYPOINT ["/init"]
