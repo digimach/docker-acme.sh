@@ -21,7 +21,7 @@ elif [[ $PGID != 0 ]]; then
     RUNNING_USER="$(getent passwd "$PUID" | cut -d: -f1)"
     addgroup -g "$PGID" container_group
     echo "** Added 'container' group with GID: '$PGID'."
-    addgroup "$RUNNING_USER" container
+    addgroup "$RUNNING_USER" container_group
     echo "** Added '$RUNNING_USER' user to group 'container' with GID '$PGID'."
 else
     echo "** PUID and/or PGID not set, will not add any user or group."
