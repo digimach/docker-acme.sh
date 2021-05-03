@@ -126,11 +126,7 @@ jobs:
         env:
           DOCKER_IMAGE: localhost/digimach/acme.sh
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
-        run: |
-          docker run -t "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG" _ ls -alrt /acmesh/
-          docker run -t "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG" --help
-          docker run -t "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG" acme.sh --help
-          docker run -t "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG"
+        run: .github/workflows/scripts/test_docker_image.sh
 
       - name: Login to Docker Hub Container Registry
         if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
