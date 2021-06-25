@@ -7,7 +7,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 if [[ $PUID != 0 ]]; then
-    adduser --no-create-home --home "${LE_CONFIG_HOME}" --shell /bin/false --uid "$PUID" container
+    adduser --no-create-home --home "$LE_CONFIG_HOME" --shell /bin/false --uid "$PUID" container
     echo "** Added user 'container' with UID: '$PUID'"
 
     if [[ $PGID != 0 && $PGID != "$PUID" ]]; then
