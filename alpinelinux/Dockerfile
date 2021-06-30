@@ -35,6 +35,7 @@ COPY --from=acmesh_artifacts "/tmp/s6-overlay-amd64-installer" "/tmp/s6-overlay-
 ENV LE_WORKING_DIR="$acme_working_dir"
 ENV LE_CONFIG_HOME=/acmesh/config
 ENV LE_CERT_HOME=/acmesh/cert-home
+ENV LE_LOG_DIR=/acmesh/logs
 
 ENV AUTO_UPGRADE "$auto_upgrade"
 
@@ -57,5 +58,6 @@ COPY root/ /
 
 VOLUME $LE_CONFIG_HOME
 VOLUME $LE_CERT_HOME
+VOLUME $LE_LOG_DIR
 
 ENTRYPOINT ["/init"]
