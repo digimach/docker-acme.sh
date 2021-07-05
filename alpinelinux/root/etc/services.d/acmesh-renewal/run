@@ -1,15 +1,6 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
-# This service script is the acme.sh renewal daemon that performs the renewal at a
-# given frequency.
+set -eu
 
-echo "** Launching acme.sh renewal daemon"
-
-RENEWAL_CHECK_FREQUENCY="${RENEWAL_CHECK_FREQUENCY:-60s}"
-while true; do
-    echo "** Performing Renewal Check."
-    /usr/local/bin/acme.sh --renew-all --log
-    echo "** Renewal check completed. Will perform next one in $RENEWAL_CHECK_FREQUENCY"
-    sleep "$RENEWAL_CHECK_FREQUENCY"
-done
+exec 2>&1 s6-setuidgid "$PUID":"$PGID" acmesh-renewal.sh

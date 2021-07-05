@@ -3,12 +3,6 @@
 
 # This service script sets up logging service to capture stdin logs
 
-echo "** Launching logger service! Any output from acmesh-renewal service will now be redirected to $LE_LOG_DIR"
+echo "** Launching logger service! Any output from acmesh-renewal service will now be redirected to $LE_LOG_DIR/acmesh-renewal"
 
-S6_LOGGING_SCRIPT_ARGS=()
-for arg in $S6_LOGGING_SCRIPT ; do
-    S6_LOGGING_SCRIPT_ARGS+=(-a "$arg")
-done
-
-exec s6-setuidgid "$PUID":"$PGID" s6-log -bp -- "${S6_LOGGING_SCRIPT_ARGS[@]}" "$LE_LOG_DIR"
-
+exec logutil-service "$LE_LOG_DIR/acmesh-renewal"

@@ -16,5 +16,7 @@ if [ -v ACMESH_DAEMON ] && [[ $ACMESH_DAEMON == "1" ]]; then
 
     mkdir -p "$LE_LOG_DIR"
     chown -R "$PUID:$PGID" "$LE_LOG_DIR"
-    chmod -R o+w "$LE_LOG_DIR"
+
+    mkdir -p "$LE_LOG_DIR/acmesh-renewal"
+    chown "$PUID:$PGID" "$LE_LOG_DIR/acmesh-renewal"
 fi

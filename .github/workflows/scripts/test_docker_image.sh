@@ -46,21 +46,20 @@ set -e
 ## Check default daemon launch
 set -x
 rm -rf /tmp/acmesh
-mkdir -p /tmp/acmesh/logs
+mkdir -p /tmp/acmesh/
 docker rm -f acmesh-renewal-daemon
-docker run --name acmesh-renewal-daemon -d --env ACMESH_DAEMON=1 --volume /tmp/acmesh/logs:/acmesh/logs "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG"
-while [ ! -f /tmp/acmesh/logs/current ]; do sleep 1; done
+docker run --name acmesh-renewal-daemon -d --env ACMESH_DAEMON=1 --env LE_LOG_DIR=/srv/acmesh/logs --volume /tmp/acmesh/:/srv/acmesh/ "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG"
+while [ ! -f /tmp/acmesh/logs/acmesh-renewal/current ]; do sleep 1; done
 sleep 5
-set +x
 
-if ! grep "Launching acme.sh renewal daemon" /tmp/acmesh/logs/current; then
+if ! grep "Launching acme.sh renewal daemon" /tmp/acmesh/logs/acmesh-renewal/current; then
     echo "---- Unable to find string 'Launching acme.sh renewal daemon'"
     exit 1
 else
     echo "---- Found 'Launching acme.sh renewal daemon'"
 fi
 
-if ! grep "Renewal check completed. Will perform next one in 60s" /tmp/acmesh/logs/current; then
+if ! grep "Renewal check completed. Will perform next one in 60s" /tmp/acmesh/logs/acmesh-renewal/current; then
     echo "---- Unable to find string 'Renewal check completed. Will perform next one in 60s'"
     exit 1
 else
@@ -71,12 +70,12 @@ docker rm --force acmesh-renewal-daemon
 
 ## Check daemon launch with provided renewal frequency variable
 rm -rf /tmp/acmesh1
-mkdir -p /tmp/acmesh1/logs
-docker run --name acmesh-renewal-daemon -d --env ACMESH_DAEMON=1 --env RENEWAL_CHECK_FREQUENCY=2h --volume /tmp/acmesh1/logs:/acmesh/logs "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG"
-while [ ! -f /tmp/acmesh1/logs/current ]; do sleep 1; done
+mkdir -p /tmp/acmesh1
+docker run --name acmesh-renewal-daemon -d --env ACMESH_DAEMON=1 --env LE_LOG_DIR=/srv/acmesh/logs --env RENEWAL_CHECK_FREQUENCY=2h --volume /tmp/acmesh1:/srv/acmesh "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG"
+while [ ! -f /tmp/acmesh1/logs/acmesh-renewal/current ]; do sleep 1; done
 sleep 5
 
-if ! grep "Renewal check completed. Will perform next one in 2h" /tmp/acmesh1/logs/current; then
+if ! grep "Renewal check completed. Will perform next one in 2h" /tmp/acmesh1/logs/acmesh-renewal/current; then
     echo "---- Renewal check completed. Will perform next one in 2h"
     exit 1
 fi
