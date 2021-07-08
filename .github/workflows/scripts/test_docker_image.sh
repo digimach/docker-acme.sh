@@ -59,11 +59,18 @@ else
     echo "---- Found 'Launching acme.sh renewal daemon'"
 fi
 
-if ! grep "Renewal check completed. Will perform next one in 60s" /tmp/acmesh/logs/acmesh-renewal/current; then
-    echo "---- Unable to find string 'Renewal check completed. Will perform next one in 60s'"
+if ! grep "Renewal check and renewal of certificate(s) if any completed!" /tmp/acmesh/logs/acmesh-renewal/current; then
+    echo "---- Unable to find string 'Renewal check and renewal of certificate(s) if any completed!'"
     exit 1
 else
-    echo "---- Found 'Renewal check completed. Will perform next one in 60s'"
+    echo "---- Found 'Renewal check and renewal of certificate(s) if any completed!'"
+fi
+
+if ! grep "Will perform next check and renewal in 1h" /tmp/acmesh/logs/acmesh-renewal/current; then
+    echo "---- Unable to find string 'Will perform next check and renewal in 1h'"
+    exit 1
+else
+    echo "---- Found 'Will perform next check and renewal in 1h'"
 fi
 
 docker rm --force acmesh-renewal-daemon
@@ -75,9 +82,11 @@ docker run --name acmesh-renewal-daemon -d --env ACMESH_DAEMON=1 --env LE_LOG_DI
 while [ ! -f /tmp/acmesh1/logs/acmesh-renewal/current ]; do sleep 1; done
 sleep 5
 
-if ! grep "Renewal check completed. Will perform next one in 2h" /tmp/acmesh1/logs/acmesh-renewal/current; then
-    echo "---- Renewal check completed. Will perform next one in 2h"
+if ! grep "Will perform next check and renewal in 2h" /tmp/acmesh1/logs/acmesh-renewal/current; then
+    echo "---- Unable to find string 'Will perform next check and renewal in 2h'"
     exit 1
+else
+    echo "---- Found 'Will perform next check and renewal in 2h'"
 fi
 
 docker rm --force acmesh-renewal-daemon
