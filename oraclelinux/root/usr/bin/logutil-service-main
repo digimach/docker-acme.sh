@@ -11,4 +11,4 @@ s6-envuidgid -D ${PUID}:${PGID} container
 s6-applyuidgid -U
 exec -c
  
-s6-log -bp -- ${S6_LOGGING_SCRIPT} ${1}
+s6-log -bp -d 3 -- ${S6_LOGGING_SCRIPT} ${1}
