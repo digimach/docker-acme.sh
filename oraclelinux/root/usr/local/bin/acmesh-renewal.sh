@@ -7,7 +7,7 @@
 set -eu
 
 echo "** Launching acme.sh renewal daemon"
-RENEWAL_CHECK_FREQUENCY="${RENEWAL_CHECK_FREQUENCY:-60s}"
+RENEWAL_CHECK_FREQUENCY="${RENEWAL_CHECK_FREQUENCY:-1h}"
 LOCKFILE="$LE_CONFIG_HOME/run.lock"
 
 while true; do
