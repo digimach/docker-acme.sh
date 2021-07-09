@@ -96,15 +96,20 @@ jobs:
       - name: Determine Parameters
         id: get_parameters
         run: |
+          env
           if [[ "$GITHUB_REF" == refs/heads/master ]]; then
               ACMESH_VERSION="${GITHUB_REF#refs/heads/}"
               DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
           elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
               ACMESH_VERSION="${GITHUB_REF#refs/tags/}"
-              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")
+              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
           elif [[ "$GITHUB_REF" == refs/heads/* ]]; then
               ACMESH_VERSION="${GITHUB_REF#refs/heads/}"
-              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")
+              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
+          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+              PULL_REQUEST_NUMBER=$(echo "$GITHUB_REF" | cut -f3 -d"/")
+              ACMESH_VERSION="${GITHUB_BASE_REF#refs/heads/}"
+              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-pr-${PULL_REQUEST_NUMBER}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
           fi
 
           echo ::set-output name=tag::$DOCKER_IMAGE_TAG
@@ -126,6 +131,7 @@ jobs:
         env:
           DOCKER_IMAGE: localhost/digimach/acme.sh
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
+        timeout-minutes: 2
         run: .github/workflows/scripts/test_docker_image.sh
 
       - name: Login to Docker Hub Container Registry
