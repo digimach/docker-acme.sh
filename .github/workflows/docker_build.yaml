@@ -149,6 +149,31 @@ jobs:
           tags: |
             "localhost/digimach/acme.sh:${{ steps.get_parameters.outputs.tag }}"
 
+      - name: Pull Image
+        env:
+          DOCKER_IMAGE: localhost/digimach/acme.sh
+          DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
+        run: |
+          docker image pull --platform "${{ matrix.platform }}" "$DOCKER_IMAGE":"$DOCKER_IMAGE_TAG"
+          echo "** Pull complete"
+          docker image tag localhost/digimach/acme.sh:"$DOCKER_IMAGE_TAG" digimach/acme.sh:"$DOCKER_IMAGE_TAG"
+          echo "** Tagging complete"
+
+      - name: Run Trivy container vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'digimach/acme.sh:${{ steps.get_parameters.outputs.tag }}'
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'    
+        env:
+          TRIVY_NON_SSL: true   
+
+      - name: Upload Trivy container scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'trivy-results.sarif'
+
       - name: Test Docker image
         env:
           DOCKER_IMAGE: localhost/digimach/acme.sh
