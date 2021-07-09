@@ -68,8 +68,31 @@ jobs:
         run: |
           echo "::set-output name=date_stamp::$(date +'%Y%m%d')"
 
+  trivy_repo_scan:
+    name: Trivy Scan on Repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'template'
+          template: '@/contrib/sarif.tpl'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'trivy-results.sarif'
+
   build:
-    needs: prepare
+    needs: 
+      - prepare
     if: ${{ needs.prepare.outputs.skip_build == 'false' }}
     strategy:
       matrix: ${{fromJson(needs.prepare.outputs.matrix)}}
@@ -126,7 +149,6 @@ jobs:
           tags: |
             "localhost/digimach/acme.sh:${{ steps.get_parameters.outputs.tag }}"
 
-     
       - name: Test Docker image
         env:
           DOCKER_IMAGE: localhost/digimach/acme.sh
@@ -153,7 +175,7 @@ jobs:
           echo "** Tagging complete"
           docker image push digimach/acme.sh:"$DOCKER_IMAGE_TAG"
           echo "** Push complete"
-
+          
       - name: Create Manifest Entry
         if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
         env:
@@ -170,6 +192,7 @@ jobs:
   dated_os_based_manifest:
     needs:
       - prepare
+      - trivy_repo_scan
       - build
     if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
     runs-on: ubuntu-latest
@@ -213,6 +236,7 @@ jobs:
   dynamic_os_based_manifest:
     needs:
       - prepare
+      - trivy_repo_scan
       - build
     if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
     runs-on: ubuntu-latest
@@ -258,6 +282,7 @@ jobs:
   dynamic_manifest:
     needs:
       - prepare
+      - trivy_repo_scan
       - build
     if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
     runs-on: ubuntu-latest
