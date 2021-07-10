@@ -1,8 +1,0 @@
-#!/usr/bin/with-contenv bash
-# shellcheck shell=bash
-
-# This service script sets up logging service to capture stdin logs
-
-echo "** Launching logger service! Any output from acmesh-renewal service will now be redirected to $LE_LOG_DIR/acmesh-renewal"
-
-exec logutil-service "$LE_LOG_DIR/acmesh-renewal"
