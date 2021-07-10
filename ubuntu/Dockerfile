@@ -47,7 +47,7 @@ ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
 
 # Install acme.sh
 RUN apt-get update \
-    && apt-get install --yes bash wget curl git openssl socat \
+    && apt-get install --yes bash curl git openssl socat \
     && apt-get --yes upgrade \
     && apt-get --yes autoremove \
     && apt-get --yes purge \
