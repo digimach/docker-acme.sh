@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - '*.md'
   pull_request:
     branches:
       - master
@@ -52,10 +54,10 @@ jobs:
         id: get_base_images
         run: .github/workflows/scripts/get_base_images.sh
         env:
-          WORKFLOW: "${{ github.event.workflow }}"
+          EVENT_NAME: "${{ github.event_name }}"
           INPUTS_BASE_IMAGES: ${{ github.event.inputs.base_images }}
-          EVENT_AFTER: ${{ github.event.after }}
-
+          BASE_REF: ${{ github.base_ref }}
+          BUILD_REF: ${{ github.ref }}
 
       - name: Prepare matrix
         id: prepare_matrix
