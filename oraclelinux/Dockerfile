@@ -46,7 +46,7 @@ ENV PGID=1001
 ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
 
 # Install acme.sh
-RUN microdnf install --assumeyes bash wget curl git openssl socat \
+RUN microdnf install --assumeyes bash wget curl openssl socat util-linux \
     && microdnf update --assumeyes \
     && microdnf clean all \
     && cd "$acmesh_artifacts_dir" || exit \
