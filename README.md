@@ -3,7 +3,9 @@
 [![Docker Build](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml)
 [![Shell Linting](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/digimach/acme.sh)](https://hub.docker.com/repository/docker/digimach/acme.sh)
-[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/digimach/acme.sh/latest?label=latest%20image%20size)](https://hub.docker.com/repository/docker/digimach/acme.sh) [![Docker Build](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml) [![Shell Linting](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml)
+[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/digimach/acme.sh/latest?label=latest%20image%20size)](https://hub.docker.com/repository/docker/digimach/acme.sh)
+[![Docker Build](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml)
+[![Shell Linting](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml) [![Join the chat at https://gitter.im/digimach/docker-acme.sh](https://badges.gitter.im/digimach/docker-acme.sh.svg)](https://gitter.im/digimach/docker-acme.sh?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [ACME Shell script: acme.sh](https://github.com/acmesh-official/acme.sh) available in 
 Docker with compatibility and security in mind. This container holds the official 
