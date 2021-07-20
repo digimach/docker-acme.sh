@@ -3,9 +3,7 @@
 [![Docker Build](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml)
 [![Shell Linting](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/digimach/acme.sh)](https://hub.docker.com/repository/docker/digimach/acme.sh)
-[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/digimach/acme.sh/latest?label=latest%20image%20size)](https://hub.docker.com/repository/docker/digimach/acme.sh)
-[![Docker Build](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml)
-[![Shell Linting](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml)
+[![Docker Image Size (tag)](https://img.shields.io/docker/image-size/digimach/acme.sh/latest?label=latest%20image%20size)](https://hub.docker.com/repository/docker/digimach/acme.sh) [![Docker Build](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml) [![Shell Linting](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml)
 
 [ACME Shell script: acme.sh](https://github.com/acmesh-official/acme.sh) available in 
 Docker with compatibility and security in mind. This container holds the official 
@@ -19,19 +17,20 @@ Features:
 * Renewal daemon to check and renew certificates automatically
 
 ---
-- [Usage](#usage)
+* [Usage](#usage)
   + [acme.sh&#8203; Command Line](#acmesh--8203--command-line)
   + [Renewal Daemon](#renewal-daemon)
-- [Parameters](#parameters)
-- [Renewal Daemon](#renewal-daemon-1)
-- [Advanced](#advanced)
-- [User / Group Identifiers](#user---group-identifiers)
-- [Examples](#examples)
+* [Parameters](#parameters)
+  + [General](#general)
+  + [Renewal Daemon](#renewal-daemon-1)
+  + [Advanced](#advanced)
+* [User / Group Identifiers](#user---group-identifiers)
+* [Examples](#examples)
   + [Running as root user](#running-as-root-user)
   + [Fulfilling a Certificate Signing Request (CSR)](#fulfilling-a-certificate-signing-request--csr-)
   + [Running Arbitary Commands](#running-arbitary-commands)
-- [Published Images](#published-images)
-- [Base Images and Architectures](#base-images-and-architectures)
+* [Published Images](#published-images)
+* [Base Images and Architectures](#base-images-and-architectures)
 ---
 
 ## Usage
@@ -76,6 +75,7 @@ docker kill -s SIGTERM acmesh-renewal-daemon
 The above will kill the daemon if it is just waiting for the next renewal check and let it finish the renewal check and issue process if its already running.
 
 ## Parameters
+### General
 The acme.sh&#8203; container can be configured at run time by passing parameters.
 
 | Parameters | Function |
@@ -87,7 +87,7 @@ The acme.sh&#8203; container can be configured at run time by passing parameters
 | `-v /acmesh/config` | acme.sh&#8203; config goes here as defined by `LE_CONFIG_HOME` variable. |
 | `-v /acmesh/cert-home` | acme.sh&#8203; stores the certificates here as defined by  `LE_CERT_HOME` variable. |
 
-## Renewal Daemon
+### Renewal Daemon
 These parameters are in addition to the above parameters and only apply to the operations of renewal daemon.
 | Parameters | Function |
 |---|---|
@@ -97,7 +97,7 @@ These parameters are in addition to the above parameters and only apply to the o
 | `-e S6_LOGGING_SCRIPT=n30 s10000000 S15000000 T !'gzip -nq9'` | Configure parameter for [`s6-log`](https://skarnet.org/software/s6/s6-log.html) that defines what to log, where, and how.  |
 | `-v /acmesh/logs` | The renewal daemon stores the logs in this directory defined by  `LE_LOG_DIR` variable. |
 
-## Advanced
+### Advanced
 These are advanced parameters that are only to be used when needed.
 | Parameters | Function |
 |---|---|
