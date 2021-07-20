@@ -1,8 +1,11 @@
 # ACME Shell script: acme.sh&#8203; Docker image
 [![License](https://img.shields.io/github/license/Digimach/docker-acme.sh?label=License)](./LICENSE.md)
+[![Docker Build](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml)
+[![Shell Linting](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/digimach/acme.sh)](https://hub.docker.com/repository/docker/digimach/acme.sh)
 [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/digimach/acme.sh/latest?label=latest%20image%20size)](https://hub.docker.com/repository/docker/digimach/acme.sh)
-
+[![Docker Build](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml)
+[![Shell Linting](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml)
 
 [ACME Shell script: acme.sh](https://github.com/acmesh-official/acme.sh) available in 
 Docker with compatibility and security in mind. This container holds the official 
