@@ -3,12 +3,12 @@ name: Docker Build
 on:
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       - '*.md'
   pull_request:
     branches:
-      - master
+      - main
   schedule:
     # The time choosen is just arbitrary and randomly generated
     - cron:  '23 8 * * *'
@@ -118,27 +118,13 @@ jobs:
         with:
           driver-opts: network=host
       
-      - name: Determine Parameters
+      - name: Get Parameters
         id: get_parameters
-        run: |
-          env
-          if [[ "$GITHUB_REF" == refs/heads/master ]]; then
-              ACMESH_VERSION="${GITHUB_REF#refs/heads/}"
-              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
-          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
-              ACMESH_VERSION="${GITHUB_REF#refs/tags/}"
-              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
-          elif [[ "$GITHUB_REF" == refs/heads/* ]]; then
-              ACMESH_VERSION="${GITHUB_REF#refs/heads/}"
-              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
-          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-              PULL_REQUEST_NUMBER=$(echo "$GITHUB_REF" | cut -f3 -d"/")
-              ACMESH_VERSION="${GITHUB_BASE_REF#refs/heads/}"
-              DOCKER_IMAGE_TAG="${{ matrix.base_image }}-${ACMESH_VERSION}-pr-${PULL_REQUEST_NUMBER}-${{ needs.prepare.outputs.date_stamp }}-$(echo ${{ matrix.platform }} | tr "/" "-")"
-          fi
-
-          echo ::set-output name=tag::$DOCKER_IMAGE_TAG
-          echo ::set-output name=acmesh_version::$ACMESH_VERSION
+        run: .github/workflows/scripts/get_parameters.sh
+        env:
+           BASE_IMAGE: "${{ matrix.base_image }}" 
+           DATE_STAMP: "${{ needs.prepare.outputs.date_stamp }}"
+           PLATFORM: "${{ matrix.platform }}"
 
       - name: Build image
         uses: docker/build-push-action@v2
@@ -184,14 +170,14 @@ jobs:
         run: .github/workflows/scripts/test_docker_image.sh
 
       - name: Login to Docker Hub Container Registry
-        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
         uses: docker/login-action@v1 
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Publish Image
-        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
         env:
           DOCKER_IMAGE: localhost/digimach/acme.sh
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
@@ -204,7 +190,7 @@ jobs:
           echo "** Push complete"
           
       - name: Create Manifest Entry
-        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
         env:
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
         run: |
@@ -221,7 +207,7 @@ jobs:
       - prepare
       - trivy_repo_scan
       - build
-    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
     runs-on: ubuntu-latest
     steps:
       - name: Download all manifest artifacts
@@ -265,7 +251,7 @@ jobs:
       - prepare
       - trivy_repo_scan
       - build
-    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
     runs-on: ubuntu-latest
     steps:
       - name: Download all manifest artifacts
@@ -311,7 +297,7 @@ jobs:
       - prepare
       - trivy_repo_scan
       - build
-    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master' )}}
+    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
     runs-on: ubuntu-latest
     steps:
       - name: Download all manifest artifacts
