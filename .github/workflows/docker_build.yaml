@@ -26,7 +26,10 @@ env:
   docker_latest_tag: true
   docker_stable_tag: false
   latest_base_os: ubuntu
-  stable_base_os: null
+  latest_acmesh_version: master
+  stable_acmesh_version: "2.9.0"
+  latest_branch: main
+  stable_branch: stable
   docker_manifest_tags_dated: "%base_os%_%acmesh_version%_%date%"
   docker_manifest_tags_undated: "%base_os%_%acmesh_version%"
 
@@ -122,11 +125,15 @@ jobs:
       
       - name: Get Parameters
         id: get_parameters
-        run: .github/workflows/scripts/get_parameters.sh
         env:
-           BASE_IMAGE: "${{ matrix.base_image }}" 
-           DATE_STAMP: "${{ needs.prepare.outputs.date_stamp }}"
-           PLATFORM: "${{ matrix.platform }}"
+          BASE_IMAGE: "${{ matrix.base_image }}" 
+          DATE_STAMP: "${{ needs.prepare.outputs.date_stamp }}"
+          PLATFORM: "${{ matrix.platform }}"
+          LATEST_ACMESH_VERSION: "${{ env.latest_acmesh_version }}"
+          STABLE_ACMESH_VERSION: "${{ env.stable_acmesh_version }}"
+          LATEST_BRANCH: "${{ env.latest_branch }}"
+          STABLE_BRANCH: "${{ env.stable_branch }}"
+        run: .github/workflows/scripts/get_parameters.sh
 
       - name: Build image
         uses: docker/build-push-action@v2
