@@ -41,3 +41,11 @@ fi
 
 echo ::set-output name=tag::"$DOCKER_IMAGE_TAG"
 echo ::set-output name=acmesh_version::"$ACMESH_VERSION"
+
+echo "** Will determine deployment variables"
+
+if [[ $GITHUB_REF =~ refs\/heads\/($LATEST_BRANCH|$STABLE_BRANCH) ]] || [[ "$GITHUB_REF" =~ refs\/tags\/.+ ]]; then
+    echo ::set-output name=docker_publish::true
+else
+    echo ::set-output name=docker_publish::false
+fi

@@ -32,6 +32,7 @@ env:
   stable_branch: stable
   docker_manifest_tags_dated: "%base_os%_%acmesh_version%_%date%"
   docker_manifest_tags_undated: "%base_os%_%acmesh_version%"
+  docker_publish: false
 
 #concurrency:
   group: ci-docker-build-${{ github.ref }}
@@ -75,6 +76,14 @@ jobs:
         run: |
           echo "::set-output name=date_stamp::$(date +'%Y%m%d')"
 
+      - name: Get deployment parameter
+        id: get_deployment_parameter
+        run: |
+          if [[ $GITHUB_REF =~ refs\/heads\/(${{ env.latest_branch }}|${{ env.stable_branch }}) ]] || [[ "$GITHUB_REF" =~ refs\/tags\/.+ ]]; then
+              echo ::set-output name=docker_publish::true
+          else
+              echo ::set-output name=docker_publish::false
+          fi
   trivy_repo_scan:
     name: Trivy Scan on Repository
     runs-on: ubuntu-latest
@@ -179,14 +188,14 @@ jobs:
         run: .github/workflows/scripts/test_docker_image.sh
 
       - name: Login to Docker Hub Container Registry
-        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+        if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
         uses: docker/login-action@v1 
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Publish Image
-        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+        if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
         env:
           DOCKER_IMAGE: localhost/digimach/acme.sh
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
@@ -199,7 +208,7 @@ jobs:
           echo "** Push complete"
           
       - name: Create Manifest Entry
-        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+        if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
         env:
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
         run: |
@@ -216,7 +225,7 @@ jobs:
       - prepare
       - trivy_repo_scan
       - build
-    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+    if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Download all manifest artifacts
@@ -260,7 +269,7 @@ jobs:
       - prepare
       - trivy_repo_scan
       - build
-    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+    if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Download all manifest artifacts
@@ -306,7 +315,7 @@ jobs:
       - prepare
       - trivy_repo_scan
       - build
-    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+    if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Download all manifest artifacts
