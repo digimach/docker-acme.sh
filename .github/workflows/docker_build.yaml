@@ -288,8 +288,8 @@ jobs:
       - name: Create Dynamic Manifest
         run: .github/workflows/scripts/docker_manifest.py dynamic
         env:
-          LATEST_BASE_OS: ${{ latest_base_os }}
-          STABLE_BASE_OS: ${{ stable_base_os }}
-          LATEST_ACMESH_VERSION: ${{ latest_acmesh_version }}
-          STABLE_ACMESH_VERSION: ${{ stable_acmesh_version }}
+          LATEST_BASE_OS: ${{ env.latest_base_os }}
+          STABLE_BASE_OS: ${{ env.stable_base_os }}
+          LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
       
