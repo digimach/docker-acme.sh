@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - main
+      - stable
     paths-ignore:
       - '*.md'
   pull_request:
     branches:
       - main
+      - stable
   schedule:
     # The time choosen is just arbitrary and randomly generated
     - cron:  '23 8 * * *'
@@ -24,9 +26,14 @@ env:
   docker_latest_tag: true
   docker_stable_tag: false
   latest_base_os: ubuntu
-  stable_base_os: null
+  stable_base_os: ubuntu
+  latest_acmesh_version: master
+  stable_acmesh_version: "2.9.0"
+  latest_branch: main
+  stable_branch: stable
   docker_manifest_tags_dated: "%base_os%_%acmesh_version%_%date%"
   docker_manifest_tags_undated: "%base_os%_%acmesh_version%"
+  docker_publish: false
 
 #concurrency:
   group: ci-docker-build-${{ github.ref }}
@@ -43,6 +50,7 @@ jobs:
       date_stamp: ${{ steps.generate_date_stamp.outputs.date_stamp }}
       buildable_base_images: ${{ steps.get_base_images.outputs.buildable_base_images }}
       base_images_to_build: ${{ steps.get_base_images.outputs.base_images_to_build }}
+      docker_publish: ${{ steps.get_deployment_parameter.outputs.docker_publish }}
 
     steps:
       - name: checkout code
@@ -70,6 +78,14 @@ jobs:
         run: |
           echo "::set-output name=date_stamp::$(date +'%Y%m%d')"
 
+      - name: Get deployment parameter
+        id: get_deployment_parameter
+        run: |
+          if [[ $GITHUB_REF =~ refs\/heads\/(${{ env.latest_branch }}|${{ env.stable_branch }}) ]] || [[ "$GITHUB_REF" =~ refs\/tags\/.+ ]]; then
+              echo ::set-output name=docker_publish::true
+          else
+              echo ::set-output name=docker_publish::false
+          fi
   trivy_repo_scan:
     name: Trivy Scan on Repository
     runs-on: ubuntu-latest
@@ -120,11 +136,15 @@ jobs:
       
       - name: Get Parameters
         id: get_parameters
-        run: .github/workflows/scripts/get_parameters.sh
         env:
-           BASE_IMAGE: "${{ matrix.base_image }}" 
-           DATE_STAMP: "${{ needs.prepare.outputs.date_stamp }}"
-           PLATFORM: "${{ matrix.platform }}"
+          BASE_IMAGE: "${{ matrix.base_image }}" 
+          DATE_STAMP: "${{ needs.prepare.outputs.date_stamp }}"
+          PLATFORM: "${{ matrix.platform }}"
+          LATEST_ACMESH_VERSION: "${{ env.latest_acmesh_version }}"
+          STABLE_ACMESH_VERSION: "${{ env.stable_acmesh_version }}"
+          LATEST_BRANCH: "${{ env.latest_branch }}"
+          STABLE_BRANCH: "${{ env.stable_branch }}"
+        run: .github/workflows/scripts/get_parameters.sh
 
       - name: Build image
         uses: docker/build-push-action@v2
@@ -170,14 +190,14 @@ jobs:
         run: .github/workflows/scripts/test_docker_image.sh
 
       - name: Login to Docker Hub Container Registry
-        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+        if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
         uses: docker/login-action@v1 
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Publish Image
-        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+        if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
         env:
           DOCKER_IMAGE: localhost/digimach/acme.sh
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
@@ -190,7 +210,7 @@ jobs:
           echo "** Push complete"
           
       - name: Create Manifest Entry
-        if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+        if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
         env:
           DOCKER_IMAGE_TAG: ${{ steps.get_parameters.outputs.tag }}
         run: |
@@ -207,7 +227,7 @@ jobs:
       - prepare
       - trivy_repo_scan
       - build
-    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+    if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Download all manifest artifacts
@@ -222,36 +242,14 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Create Dated OS Based Manifest
-        shell: python
-        run: |
-          import subprocess
-          import os
-
-          manifests_data = {}
-
-          for tag in os.listdir('manifests'):
-            manifest_name = "-".join(tag.split("-")[:3])
-            manifests_data.setdefault(manifest_name, [])
-            manifests_data[manifest_name].append("--amend digimach/acme.sh:" + tag)
-
-          
-          for manifest_name, ammend_tags in manifests_data.items():
-            cmd = "docker manifest create digimach/acme.sh:{0} {1}".format(manifest_name, " ".join(ammend_tags))
-            print(cmd)
-            subprocess.check_call(cmd.split(" "))
-            print("** Created manifest:", manifest_name)
-
-            cmd = "docker manifest push digimach/acme.sh:{0}".format(manifest_name)
-            print(cmd)
-            subprocess.check_call(cmd.split(" "))
-            print("** Pushed manifest:", manifest_name)
+        run: .github/workflows/scripts/docker_manifest.py dated_os
 
   dynamic_os_based_manifest:
     needs:
       - prepare
       - trivy_repo_scan
       - build
-    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+    if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Download all manifest artifacts
@@ -266,38 +264,14 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Create Dynamic OS Based Manifest
-        shell: python
-        run: |
-          import subprocess
-          import os
-          import re
-
-          manifests_data = {}
-
-          for tag in os.listdir('manifests'):
-            manifest_name = "-".join(tag.split("-")[:2])
-            manifest_name = re.sub('^(.*)-master$', '\\1-latest', manifest_name)
-            manifests_data.setdefault(manifest_name, [])
-            manifests_data[manifest_name].append("--amend digimach/acme.sh:" + tag)
-
-          
-          for manifest_name, ammend_tags in manifests_data.items():
-            cmd = "docker manifest create digimach/acme.sh:{0} {1}".format(manifest_name, " ".join(ammend_tags))
-            print(cmd)
-            subprocess.check_call(cmd.split(" "))
-            print("** Created manifest:", manifest_name)
-
-            cmd = "docker manifest push digimach/acme.sh:{0}".format(manifest_name)
-            print(cmd)
-            subprocess.check_call(cmd.split(" "))
-            print("** Pushed manifest:", manifest_name)
+        run: .github/workflows/scripts/docker_manifest.py dynamic_os
 
   dynamic_manifest:
     needs:
       - prepare
       - trivy_repo_scan
       - build
-    if: ${{ ( contains(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' )}}
+    if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Download all manifest artifacts
@@ -311,40 +285,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Create Manifest
-        shell: python
-        run: |
-          import subprocess
-          import os
-          import re
-
-          manifests_data = {}
-
-          for tag in os.listdir('manifests'):
-            image_base_os = tag.split("-")[0]
-            acmesh_version = tag.split("-")[1]
-
-            if image_base_os == "ubuntu":
-              if acmesh_version == "master":
-                manifest_name = "latest"
-                manifests_data.setdefault(manifest_name, [])
-                manifests_data[manifest_name].append("--amend digimach/acme.sh:" + tag)
-              elif acmesh_version == "2.8.8":
-                manifest_name = "stable"
-                manifests_data.setdefault(manifest_name, [])
-                manifests_data[manifest_name].append("--amend digimach/acme.sh:" + tag)
-            else:
-              continue
-
-          
-          for manifest_name, ammend_tags in manifests_data.items():
-            cmd = "docker manifest create digimach/acme.sh:{0} {1}".format(manifest_name, " ".join(ammend_tags))
-            print(cmd)
-            subprocess.check_call(cmd.split(" "))
-            print("** Created manifest:", manifest_name)
-
-            cmd = "docker manifest push digimach/acme.sh:{0}".format(manifest_name)
-            print(cmd)
-            subprocess.check_call(cmd.split(" "))
-            print("** Pushed manifest:", manifest_name)
+      - name: Create Dynamic Manifest
+        run: .github/workflows/scripts/docker_manifest.py dynamic
+        env:
+          LATEST_BASE_OS: ${{ env.latest_base_os }}
+          STABLE_BASE_OS: ${{ env.stable_base_os }}
+          LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
       
