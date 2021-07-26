@@ -26,6 +26,7 @@ env:
   docker_latest_tag: true
   docker_stable_tag: false
   latest_base_os: ubuntu
+  stable_base_os: ubuntu
   latest_acmesh_version: master
   stable_acmesh_version: "2.9.0"
   latest_branch: main
