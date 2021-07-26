@@ -232,6 +232,9 @@ jobs:
     if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
     runs-on: ubuntu-latest
     steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
       - name: Download all manifest artifacts
         uses: actions/download-artifact@v2
         with:
@@ -254,6 +257,9 @@ jobs:
     if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
     runs-on: ubuntu-latest
     steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
       - name: Download all manifest artifacts
         uses: actions/download-artifact@v2
         with:
@@ -276,6 +282,9 @@ jobs:
     if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
     runs-on: ubuntu-latest
     steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+
       - name: Download all manifest artifacts
         uses: actions/download-artifact@v2
         with:
