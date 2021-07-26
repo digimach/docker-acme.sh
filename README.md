@@ -4,8 +4,6 @@
 [![Shell Linting](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/digimach/acme.sh)](https://hub.docker.com/repository/docker/digimach/acme.sh)
 [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/digimach/acme.sh/latest?label=latest%20image%20size)](https://hub.docker.com/repository/docker/digimach/acme.sh)
-[![Docker Build](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/docker_build.yaml)
-[![Shell Linting](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml/badge.svg)](https://github.com/digimach/docker-acme.sh/actions/workflows/shell_linting.yaml) [![Join the chat at https://gitter.im/digimach/docker-acme.sh](https://badges.gitter.im/digimach/docker-acme.sh.svg)](https://gitter.im/digimach/docker-acme.sh?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [ACME Shell script: acme.sh](https://github.com/acmesh-official/acme.sh) available in 
 Docker with compatibility and security in mind. This container holds the official 
@@ -15,11 +13,12 @@ Features:
 * Multiple architectures 
 * Multiple base operating systems
 * Handles running as a non-root user
-* Upstream OS patches applied to `latest` tag at build time
+* Upstream OS patches applied to `latest` and `stable` tags at build time
 * Renewal daemon to check and renew certificates automatically
 
 ---
 * [Usage](#usage)
+  + [`latest` vs `stable` Docker Tags](#-latest--vs--stable--docker-tags)
   + [acme.sh&#8203; Command Line](#acmesh--8203--command-line)
   + [Renewal Daemon](#renewal-daemon)
 * [Parameters](#parameters)
@@ -36,6 +35,23 @@ Features:
 ---
 
 ## Usage
+### `latest` vs `stable` Docker Tags
+
+The two tags `latest` and `stable` are undated tags which means they can be updated to
+point to newer Docker images. 
+
+The two tags will have latest OS patches applied at build
+time with the difference being the acme.sh&#8203 version.
+
+`latest` tag will contain the latest available code of acme.sh&#8203. While this provides
+the latest features and bug fixes, it comes with some risk of instability.
+
+`stable` tag will contain the latest released version of acme.sh&#8203.
+
+For production application, it is recommended to use the `stable` tag.
+
+See [Published Images](#published-images) for other tags that are available.
+
 ### acme.sh&#8203; Command Line
 ```
 docker run --interactive \
@@ -203,22 +219,27 @@ To simplify tagging scheme, the following nomenclature is applied to all publish
 tags. Depending on the end use case, you can choose the appropriate tag.
 
 For clarification purposes, the term **latest** refers to latest at build
-time and if the tag is not dated, it will be kept up to date.
+time and if the tag is not dated, it will be kept up to date at the frequency stated.
+
+Additionally, the term **stable** refers to the stable version of acme.sh&#8203 which
+is equal to the latest **released** version. If the tag contains stable and is not
+dated it is going to get up to date OS patches at the frequency stated.
 
 If a base OS has multiple versions, every attempt will be made to keep using the latest
 stable OS version. Build and support for older version maybe dropped if the upstream
 OS does not provide any support. Please refer to the base OS release cycles for more
 information.
 
-| Tag                                          | Purpose                                                                                                                                                                                                                                                                                                          | Example                                                                                                                | Update Frequency | Branch |
-|----------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|------------------|--------|
-| latest                                       | The latest acme.sh&#8203; with up to date OS patches based on latest Ubuntu base image.                                                                                                                                                                                                                                 | latest                                                                                                                 | Daily            |        |
-| stable                                       | The latest stable release of acme.sh&#8203; with up to date OS patches based on latest Ubuntu image.                                                                                                                                                                                                                    | stable                                                                                                                 | Daily            |        |
-| \<base_os\>-latest                           | The latest release of acme.sh&#8203; with up to date base OS patches.                                                                                                                                                                                                                                                   | * alpinelinux-latest<br>* debian-latest<br>* oraclelinux-latest<br>* ubunut-latest                                     | Daily            |        |
-| \<base_os\>-\<acme.sh-version\>              | The release of acme.sh&#8203; as embedded in the tag with up to date OS patches based on latest base OS image.<br>While the acme.sh&#8203; version will remain static, this image tag will be regularly updated with latest OS patches applied.                                                                                | * alpinelinux-2.8.8<br>* debian-2.8.8<br>* oraclelinux-2.8.8<br>* ubunut-2.8.8                                         | Daily            |        |
-| \<base_os\>-master-\<YYYYMMDD\>              | The latest release of acme.sh&#8203; at <b><i>build time</b></i> with up to date OS patches based on latest base OS image.<br>The image tag is dated for downstream use cases where a static reference is required.<br>Keep in mind, these images do not have OS patches applied regularly nor is acme.sh&#8203; ever updated. | * alpinelinux-master-20210425<br>* debian-master-20210425<br>* oraclelinux-master-20210425<br>* ubunut-master-20210425 | Once             |        |
-| \<base_os\>-\<acme.sh-version\>-\<YYYYMMDD\> | The release of acme.sh&#8203; as embedded in the tag with up to date OS patches based on latest base OS image.<br><br>The image tag is dated for downstream use cases where a static reference is required.<br><br>Keep in mind, these images do not have OS patches applied regularly nor is acme.sh&#8203; ever updated.     | * alpinelinux-2.8.8-20210425<br>* debian-2.8.8-20210425<br>* oraclelinux-2.8.8-20210425<br>* ubunut-2.8.8-20210425     | Once             |        |
+|  | Tag | Purpose | Example | Update Frequency | Branch |  |
+|---|---|---|---|---|---|---|
+|  | latest | The latest acme.sh&#8203; with up to date OS patches based on latest Ubuntu base image. | latest | Daily | main |  |
+|  | stable | The latest stable release of acme.sh&#8203; with up to date OS patches based on latest Ubuntu image. | stable | Daily | stable |  |
+|  | \<base_os\>-latest | The latest release of acme.sh&#8203; with up to date base OS patches. | - alpinelinux-latest<br> - amazonlinux-latest<br> - oraclelinux-latest<br> - rockylinux-latest<br> - ubunut-latest | Daily | main |  |
+|  | \<base_os\>-\<acme.sh-version\> | The release of acme.sh&#8203; as embedded in the tag with up to date OS patches based on latest base OS image.<br>While the acme.sh&#8203; version will remain static, this image tag will be regularly updated with latest OS patches applied. | - alpinelinux-2.9.0<br> - amazonlinux-2.9.0<br> - oraclelinux-2.9.0<br> - rockylinux-2.9.0<br> - ubunut-2.9.0 | Daily | stable |  |
+|  | \<base_os\>-master-\<YYYYMMDD\> | The latest release of acme.sh&#8203; at <b><i>build time</b></i> with up to date OS patches based on latest base OS image.<br>The image tag is dated for downstream use cases where a static reference is required.<br>Keep in mind, these images do not have OS patches applied regularly nor is acme.sh&#8203; ever updated. | - alpinelinux-master-20210425<br> - amazonlinux-master-20210425 - oraclelinux-master-20210425<br> - rockylinux-master-20210425<br> - ubunut-master-20210425 | Once | main |  |
+|  | \<base_os\>-\<acme.sh-version\>-\<YYYYMMDD\> | The release of acme.sh&#8203; as embedded in the tag with up to date OS patches based on latest base OS image.<br><br>The image tag is dated for downstream use cases where a static reference is required.<br><br>Keep in mind, these images do not have OS patches applied regularly nor is acme.sh&#8203; ever updated. | - alpinelinux-2.9.0-20210425<br> - amazonlinux-2.9.0-20210425 - oraclelinux-2.9.0-20210425<br> - rockylinux-2.9.0-20210425<br> - ubunut-2.9.0-20210425 | Once | stable |  |
 
+---
 
 ## Base Images and Architectures
 
@@ -229,5 +250,7 @@ Every attempt is made to cover popular distributions and architectures in publis
 | Alpine Linux |     latest     | linux/arm64/v8, linux/amd64, linux/arm/v6, linux/arm/v7, linux/386, linux/ppc64le, linux/s390x |
 | Amazon Linux |     latest     | linux/arm64/v8, linux/amd64 |
 | Oracle Linux |     8-slim     | linux/arm64/v8, linux/amd64 |
-| Rocky Linux |     latest     | linux/arm64/v8, linux/amd64 |
+| Rocky Linux  |     latest     | linux/arm64/v8, linux/amd64 |
 | Ubuntu       |     latest     | linux/arm64/v8, linux/amd64, linux/arm/v7, linux/ppc64le, linux/s390x |
+
+---
