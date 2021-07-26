@@ -49,6 +49,7 @@ jobs:
       date_stamp: ${{ steps.generate_date_stamp.outputs.date_stamp }}
       buildable_base_images: ${{ steps.get_base_images.outputs.buildable_base_images }}
       base_images_to_build: ${{ steps.get_base_images.outputs.base_images_to_build }}
+      docker_publish: ${{ steps.get_deployment_parameter.outputs.docker_publish }}
 
     steps:
       - name: checkout code
