@@ -11,6 +11,7 @@ class DockerTag(object):
         self.acmesh_version = docker_tag_split[1]
         self.date_stamp = docker_tag_split[2]
         self.platform = docker_tag_split[3]
+        self.build_id = docker_tag_split[4]
         self.latest_version = False
         self.stable_version = False
         self.latest_base_os = False

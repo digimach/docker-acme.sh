@@ -11,16 +11,16 @@ if [[ "$GITHUB_REF" == refs/heads/$LATEST_BRANCH ]]; then
     # from acme.sh we use master.
     ACMESH_VERSION="$LATEST_ACMESH_VERSION"
     # Tag Format: <base_os>-<acmesh-version>-<date-stamp>-<platform>
-    DOCKER_IMAGE_TAG="${BASE_IMAGE}-${ACMESH_VERSION}-${DATE_STAMP}-$(echo "${PLATFORM}" | tr '/' '_')"
+    DOCKER_IMAGE_TAG="${BASE_IMAGE}-${ACMESH_VERSION}-${DATE_STAMP}-$(echo "${PLATFORM}" | tr '/' '_')-${GITHUB_RUN_ID}"
 elif [[ "$GITHUB_REF" =~ refs\/heads\/$STABLE_BRANCH_PREFIX ]]; then
     ACMESH_VERSION="${GITHUB_REF#refs/heads/$STABLE_BRANCH_PREFIX}"
     # Tag Format: <base_os>-<acmesh-version>-<date-stamp>-<platform>
-    DOCKER_IMAGE_TAG="${BASE_IMAGE}-${ACMESH_VERSION}-${DATE_STAMP}-$(echo "${PLATFORM}" | tr '/' '-')"
+    DOCKER_IMAGE_TAG="${BASE_IMAGE}-${ACMESH_VERSION}-${DATE_STAMP}-$(echo "${PLATFORM}" | tr '/' '-')-${GITHUB_RUN_ID}"
 elif [[ "$GITHUB_REF" =~ refs\/tags\/v.+ ]]; then
     # acme.sh doesn't tag with a prefix v, but this repo does. So we drop the v when
     # getting the artifacts from acme.sh and also tag without the v in docker images
     ACMESH_VERSION="${GITHUB_REF#refs/tags/v}"
-    DOCKER_IMAGE_TAG="${BASE_IMAGE}-${ACMESH_VERSION}-${DATE_STAMP}-$(echo "${PLATFORM}" | tr '/' '-')"
+    DOCKER_IMAGE_TAG="${BASE_IMAGE}-${ACMESH_VERSION}-${DATE_STAMP}-$(echo "${PLATFORM}" | tr '/' '-')-${GITHUB_RUN_ID}"
 elif [[ $GITHUB_EVENT_NAME == "pull_request" ]]; then
     PULL_REQUEST_NUMBER=$(echo "$GITHUB_REF" | cut -f3 -d"/")
 
