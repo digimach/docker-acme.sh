@@ -6,11 +6,16 @@ on:
       - "main"
     paths-ignore:
       - '*.md'
+      - '.github/workflows/shell_linting.yaml'
+      - '.github/workflows/dockerhub_description.yaml'
   pull_request:
     branches:
       - "main"
     paths-ignore:
       - '*.md'
+      - '.github/workflows/shell_linting.yaml'
+      - '.github/workflows/dockerhub_description.yaml'
+
   schedule:
     # The time choosen is just arbitrary and randomly generated
     - cron:  '23 8 * * *'
