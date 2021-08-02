@@ -24,11 +24,11 @@ on:
 env:
   acmesh_version: ~
   latest_base_os: ubuntu
-  stable_base_os: ~
+  stable_base_os: ubuntu
   latest_acmesh_version: master
-  stable_acmesh_version: ~
+  stable_acmesh_version: "2.9.0"
   latest_branch: main
-  stable_branch_prefix: ~
+  stable_branch_prefix: "stable/"
 
 concurrency:
   group: ci-docker-build-${{ github.ref }}
