@@ -5,15 +5,16 @@
 
 echo "** Will determine acme.sh version and Docker tags"
 
-env
+STABLE_BRANCH_PREFIX_ESCAPED=$(sed 's/[^^]/[&]/g; s/\^/\\^/g' <<<"$STABLE_BRANCH_PREFIX")
+
 if [[ "$GITHUB_REF" == refs/heads/$LATEST_BRANCH ]]; then
     # acme.sh uses master branch names, but we use main. While getting the artifacts
     # from acme.sh we use master.
     ACMESH_VERSION="$LATEST_ACMESH_VERSION"
     # Tag Format: <base_os>-<acmesh-version>-<date-stamp>-<platform>
     DOCKER_IMAGE_TAG="${BASE_IMAGE}-${ACMESH_VERSION}-${DATE_STAMP}-$(echo "${PLATFORM}" | tr '/' '_')-${GITHUB_RUN_ID}"
-elif [[ "$GITHUB_REF" =~ refs\/heads\/$STABLE_BRANCH_PREFIX ]]; then
-    ACMESH_VERSION="${GITHUB_REF#refs/heads/$STABLE_BRANCH_PREFIX}"
+elif [[ "$GITHUB_REF" =~ refs\/heads\/$STABLE_BRANCH_PREFIX_ESCAPED ]]; then
+    ACMESH_VERSION="${GITHUB_REF#refs/heads/$STABLE_BRANCH_PREFIX_ESCAPED}"
     # Tag Format: <base_os>-<acmesh-version>-<date-stamp>-<platform>
     DOCKER_IMAGE_TAG="${BASE_IMAGE}-${ACMESH_VERSION}-${DATE_STAMP}-$(echo "${PLATFORM}" | tr '/' '-')-${GITHUB_RUN_ID}"
 elif [[ "$GITHUB_REF" =~ refs\/tags\/v.+ ]]; then
