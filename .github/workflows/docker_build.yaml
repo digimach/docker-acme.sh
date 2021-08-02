@@ -3,12 +3,12 @@ name: Docker Build
 on:
   push:
     branches:
-      - "main"
+      - "stable/2.8.9"
     paths-ignore:
       - '*.md'
   pull_request:
     branches:
-      - "main"
+      - "stable/2.8.9"
     paths-ignore:
       - '*.md'
   schedule:

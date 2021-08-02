@@ -2,13 +2,13 @@ name: Shell Linting
 on:
   push:
     branches:
-      - 'main'
+      - "stable/2.8.9"
     paths:
       - '**.sh'
       - '**.yaml'
   pull_request:
     branches:
-      - 'main'
+      - "stable/2.8.9"
     paths:
       - '**.sh'
       - '**.yaml'
