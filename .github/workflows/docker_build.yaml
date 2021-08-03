@@ -7,14 +7,16 @@ on:
     paths-ignore:
       - '*.md'
       - '.github/workflows/shell_linting.yaml'
-      - '.github/workflows/dockerhub_description.yaml'
+      - '.github/workflows/scripts/acmesh_release_check/**'
+      - '.github/workflows/acmesh_release_check.yaml'
   pull_request:
     branches:
       - "main"
     paths-ignore:
       - '*.md'
       - '.github/workflows/shell_linting.yaml'
-      - '.github/workflows/dockerhub_description.yaml'
+      - '.github/workflows/scripts/acmesh_release_check/**'
+      - '.github/workflows/acmesh_release_check.yaml'
 
   schedule:
     # The time choosen is just arbitrary and randomly generated

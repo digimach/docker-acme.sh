@@ -1,0 +1,35 @@
+# This workflow checks acme.sh for new release and creates the artifacts in this
+# repository
+name: acme.sh release check
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - '.github/workflows/acmesh_release_check/**'
+      - '.github/workflows/acmesh_release_check.yaml'
+  schedule:
+    - cron:  '13 3 * * *'
+
+concurrency:
+  group: ci-acmesh_release_check
+  cancel-in-progress: true
+
+jobs:
+  check_acmesh_version:
+    name: Check for new acme.sh version
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.check_and_push_stable.outputs.new_version == 'true' }}
+    steps:
+      - name: Checkout Code
+        id: checkout_code
+        uses: actions/checkout@v2  
+        with:
+          fetch-depth: 0 
+
+      - name: Check acme.sh release and push stable branch
+        id: check_and_push_stable
+        run: .github/workflows/scripts/acmesh_release_check/check_and_push_stable.sh
+
