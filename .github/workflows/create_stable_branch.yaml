@@ -1,0 +1,79 @@
+---
+name: Create stable branch
+
+"on":
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/create_stable_branch/**
+      - .github/workflows/create_stable_branch.yaml
+  schedule:
+    - cron: 13 3 * * *
+  workflow_dispatch:
+    inputs:
+      acmesh_version:
+        description: acme.sh version for which to setup the stable branch
+        required: true
+
+concurrency:
+  cancel-in-progress: true
+  group: ci-create_stable_branch
+
+jobs:
+  check_acmesh_version:
+    name: Check for new acme.sh version
+    outputs:
+      new_branch: ${{ steps.check_release.outputs.new_branch }}
+      new_release_version: ${{ steps.check_release.outputs.new_release_version }}
+      new_version: ${{ steps.check_release.outputs.new_version == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        id: checkout_code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Check acme.sh release
+        id: check_release
+        run: .github/workflows/scripts/create_stable_branch/check_acmesh_release.sh
+        env:
+          ACMESH_VERSION: ${{ github.event.inputs.acmesh_version }}
+          EVENT_NAME: ${{ github.event_name }}
+
+  create_stable_branch:
+    if: ${{ needs.check_acmesh_version.outputs.new_version }}
+    name: Create new stable branch
+    environment: GitHub
+    needs:
+      - check_acmesh_version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        id: checkout_code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: main
+          ssh-key: ${{ secrets.DEPLOY_KEY_GITHUB }}
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruamel.yaml
+
+      - name: Prepare files
+        id: prepare_files
+        run: .github/workflows/scripts/create_stable_branch/prepare_files.py
+        env:
+          NEW_BRANCH: ${{ needs.check_acmesh_version.outputs.new_branch }}
+
+      - name: Create stable branch
+        id: create_stable_branch
+        run: .github/workflows/scripts/create_stable_branch/create_stable_branch.sh ${{ needs.check_acmesh_version.outputs.new_branch }}

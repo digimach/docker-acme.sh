@@ -3,39 +3,39 @@ name: Docker Build
 on:
   push:
     branches:
-      - "main"
+      - main
     paths-ignore:
       - '*.md'
-      - '.github/workflows/shell_linting.yaml'
-      - '.github/workflows/scripts/acmesh_release_check/**'
-      - '.github/workflows/acmesh_release_check.yaml'
+      - .github/workflows/shell_linting.yaml
+      - .github/workflows/scripts/create_stable_branch/**
+      - .github/workflows/create_stable_branch.yaml
   pull_request:
     branches:
-      - "main"
+      - main
     paths-ignore:
       - '*.md'
-      - '.github/workflows/shell_linting.yaml'
-      - '.github/workflows/scripts/acmesh_release_check/**'
-      - '.github/workflows/acmesh_release_check.yaml'
+      - .github/workflows/shell_linting.yaml
+      - .github/workflows/scripts/create_stable_branch/**
+      - .github/workflows/create_stable_branch.yaml
 
   schedule:
     # The time choosen is just arbitrary and randomly generated
-    - cron:  '23 8 * * *'
+    - cron: 23 8 * * *
   workflow_dispatch:
     inputs:
       base_images:
         description: List of base images to build
-        default: 'alpinelinux, amazonlinux, rockylinux, ubuntu'
+        default: alpinelinux, amazonlinux, rockylinux, ubuntu
         required: false
 
 env:
-  acmesh_version: ~
+  acmesh_version:
   latest_base_os: ubuntu
   stable_base_os: ubuntu
   latest_acmesh_version: master
-  stable_acmesh_version: "2.9.0"
+  stable_acmesh_version: 2.9.0
   latest_branch: main
-  stable_branch_prefix: "stable/"
+  stable_branch_prefix: stable/
 
 concurrency:
   group: ci-docker-build-${{ github.ref }}
@@ -57,15 +57,15 @@ jobs:
     steps:
       - name: Checkout Code
         id: checkout_code
-        uses: actions/checkout@v2  
+        uses: actions/checkout@v2
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Get base images to build
         id: get_base_images
         run: .github/workflows/scripts/get_base_images.sh
         env:
-          EVENT_NAME: "${{ github.event_name }}"
+          EVENT_NAME: ${{ github.event_name }}
           INPUTS_BASE_IMAGES: ${{ github.event.inputs.base_images }}
           BASE_REF: ${{ github.base_ref }}
           BUILD_REF: ${{ github.ref }}
@@ -74,15 +74,15 @@ jobs:
         id: prepare_matrix
         run: .github/workflows/scripts/prepare_matrix.py
         env:
-          BASE_IMAGES: "${{ steps.get_base_images.outputs.base_images_to_build }}"         
+          BASE_IMAGES: ${{ steps.get_base_images.outputs.base_images_to_build }}
 
       - name: Generate Matrix Parameters
         id: generate_matrix_parameters
         env:
-          LATEST_BRANCH: "${{ env.latest_branch }}"
-          STABLE_BRANCH_PREFIX: "${{ env.stable_branch_prefix }}"
+          LATEST_BRANCH: ${{ env.latest_branch }}
+          STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
         run: .github/workflows/scripts/generate_matrix_parameters.sh
-  
+
   trivy_repo_scan:
     name: Trivy Scan on Repository
     runs-on: ubuntu-latest
@@ -95,22 +95,22 @@ jobs:
         id: trivy_repo_scan
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'fs'
+          scan-type: fs
           ignore-unfixed: true
-          format: 'template'
+          format: template
           template: '@/contrib/sarif.tpl'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL'
+          output: trivy-results.sarif
+          severity: CRITICAL
 
       - name: Upload Trivy scan results to GitHub Security tab
         id: trivy_repo_scan_result_upload
         uses: github/codeql-action/upload-sarif@v1
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: trivy-results.sarif
 
   build_matrix_docker:
     name: Build Docker containers
-    needs: 
+    needs:
       - prepare
     if: ${{ needs.prepare.outputs.skip_build == 'false' }}
     strategy:
@@ -130,22 +130,22 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
         with:
           driver-opts: network=host
-      
+
       - name: Get Parameters
         id: get_parameters
         env:
-          BASE_IMAGE: "${{ matrix.base_image }}" 
-          DATE_STAMP: "${{ needs.prepare.outputs.date_stamp }}"
-          PLATFORM: "${{ matrix.platform }}"
-          LATEST_ACMESH_VERSION: "${{ env.latest_acmesh_version }}"
-          STABLE_ACMESH_VERSION: "${{ env.stable_acmesh_version }}"
-          LATEST_BRANCH: "${{ env.latest_branch }}"
-          STABLE_BRANCH_PREFIX: "${{ env.stable_branch_prefix }}"
+          BASE_IMAGE: ${{ matrix.base_image }}
+          DATE_STAMP: ${{ needs.prepare.outputs.date_stamp }}
+          PLATFORM: ${{ matrix.platform }}
+          LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
+          LATEST_BRANCH: ${{ env.latest_branch }}
+          STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
         run: .github/workflows/scripts/get_parameters.sh
 
       - name: Build image
@@ -172,17 +172,17 @@ jobs:
       - name: Run Trivy container vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'digimach/acme.sh:${{ steps.get_parameters.outputs.tag }}'
-          format: 'template'
+          image-ref: digimach/acme.sh:${{ steps.get_parameters.outputs.tag }}
+          format: template
           template: '@/contrib/sarif.tpl'
-          output: 'trivy-results.sarif'    
+          output: trivy-results.sarif
         env:
-          TRIVY_NON_SSL: true   
+          TRIVY_NON_SSL: true
 
       - name: Upload Trivy container scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v1
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: trivy-results.sarif
 
       - name: Test Docker image
         env:
@@ -193,7 +193,7 @@ jobs:
 
       - name: Login to Docker Hub Container Registry
         if: ${{ needs.prepare.outputs.docker_publish== 'true' }}
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -210,7 +210,7 @@ jobs:
           echo "** Tagging complete"
           docker image push digimach/acme.sh:"$DOCKER_IMAGE_TAG"
           echo "** Push complete"
-          
+
       - name: Create tag meta entry
         if: ${{ needs.prepare.outputs.docker_publish == 'true' }}
         env:
@@ -220,7 +220,7 @@ jobs:
           echo "PLATFORM=${{ matrix.platform }}" >> /tmp/tag.txt
           echo "DATE_STAMP=${{ needs.prepare.outputs.date_stamp }}" >> /tmp/tag.txt
           echo "DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG" >> /tmp/tag.txt
-      
+
       - name: Upload tag meta file
         uses: actions/upload-artifact@v2
         with:
@@ -245,7 +245,7 @@ jobs:
           path: tags_meta/
 
       - name: Login to Docker Hub Container Registry
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -253,12 +253,12 @@ jobs:
       - name: Create dated OS based manifest
         run: .github/workflows/scripts/docker_manifest.py dated_os
         env:
-          LATEST_ACMESH_VERSION: "${{ env.latest_acmesh_version }}"
-          STABLE_ACMESH_VERSION: "${{ env.stable_acmesh_version }}"
-          LATEST_BRANCH: "${{ env.latest_branch }}"
-          STABLE_BRANCH_PREFIX: "${{ env.stable_branch_prefix }}"
-          LATEST_BASE_OS: "${{ env.latest_base_os }}"
-          STABLE_BASE_OS: "${{ env.stable_base_os }}"
+          LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
+          LATEST_BRANCH: ${{ env.latest_branch }}
+          STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
+          LATEST_BASE_OS: ${{ env.latest_base_os }}
+          STABLE_BASE_OS: ${{ env.stable_base_os }}
 
   dynamic_os_based_manifest:
     needs:
@@ -278,7 +278,7 @@ jobs:
           path: tags_meta/
 
       - name: Login to Docker Hub Container Registry
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -286,12 +286,12 @@ jobs:
       - name: Create dynamic os based Manifest
         run: .github/workflows/scripts/docker_manifest.py dynamic_os
         env:
-          LATEST_ACMESH_VERSION: "${{ env.latest_acmesh_version }}"
-          STABLE_ACMESH_VERSION: "${{ env.stable_acmesh_version }}"
-          LATEST_BRANCH: "${{ env.latest_branch }}"
-          STABLE_BRANCH_PREFIX: "${{ env.stable_branch_prefix }}"
-          LATEST_BASE_OS: "${{ env.latest_base_os }}"
-          STABLE_BASE_OS: "${{ env.stable_base_os }}"
+          LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
+          LATEST_BRANCH: ${{ env.latest_branch }}
+          STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
+          LATEST_BASE_OS: ${{ env.latest_base_os }}
+          STABLE_BASE_OS: ${{ env.stable_base_os }}
 
   dynamic_manifest:
     needs:
@@ -311,7 +311,7 @@ jobs:
           path: tags_meta/
 
       - name: Login to Docker Hub Container Registry
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -319,12 +319,12 @@ jobs:
       - name: Create dynamic manifest
         run: .github/workflows/scripts/docker_manifest.py dynamic
         env:
-          LATEST_ACMESH_VERSION: "${{ env.latest_acmesh_version }}"
-          STABLE_ACMESH_VERSION: "${{ env.stable_acmesh_version }}"
-          LATEST_BRANCH: "${{ env.latest_branch }}"
-          STABLE_BRANCH_PREFIX: "${{ env.stable_branch_prefix }}"
-          LATEST_BASE_OS: "${{ env.latest_base_os }}"
-          STABLE_BASE_OS: "${{ env.stable_base_os }}"
+          LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
+          LATEST_BRANCH: ${{ env.latest_branch }}
+          STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
+          LATEST_BASE_OS: ${{ env.latest_base_os }}
+          STABLE_BASE_OS: ${{ env.stable_base_os }}
 
   acmesh_versioned_manifest:
     needs:
@@ -344,7 +344,7 @@ jobs:
           path: tags_meta/
 
       - name: Login to Docker Hub Container Registry
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
@@ -352,10 +352,9 @@ jobs:
       - name: Create acme.sh versioned based manifest
         run: .github/workflows/scripts/docker_manifest.py acmesh_versioned
         env:
-          LATEST_ACMESH_VERSION: "${{ env.latest_acmesh_version }}"
-          STABLE_ACMESH_VERSION: "${{ env.stable_acmesh_version }}"
-          LATEST_BRANCH: "${{ env.latest_branch }}"
-          STABLE_BRANCH_PREFIX: "${{ env.stable_branch_prefix }}"
-          LATEST_BASE_OS: "${{ env.latest_base_os }}"
-          STABLE_BASE_OS: "${{ env.stable_base_os }}"
-      
+          LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
+          LATEST_BRANCH: ${{ env.latest_branch }}
+          STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
+          LATEST_BASE_OS: ${{ env.latest_base_os }}
+          STABLE_BASE_OS: ${{ env.stable_base_os }}
