@@ -43,6 +43,7 @@ check_release() {
         echo "::set-output name=new_release_version::$release_tag_name"
         echo "::set-output name=new_version::true"
     else
+        echo "** Stable branch for $release_tag_name was found."
         echo "::set-output name=new_version::false"
     fi
 }
