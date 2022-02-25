@@ -27,6 +27,7 @@ on:
         description: List of base images to build
         default: alpinelinux, amazonlinux, rockylinux, ubuntu
         required: false
+  workflow_call:
 
 env:
   acmesh_version:
