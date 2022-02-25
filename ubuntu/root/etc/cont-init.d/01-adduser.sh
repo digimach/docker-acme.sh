@@ -8,8 +8,12 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 if [[ $PUID != 0 ]]; then
-    adduser --no-create-home --disabled-password --disabled-login --home "$LE_CONFIG_HOME" --gecos "" --shell /bin/false --uid "$PUID" container
-    echo "** Added user 'container' with UID: '$PUID'"
+    if id -u container &>/dev/null; then
+        echo "** User 'container' already exists"
+    else
+        adduser --no-create-home --disabled-password --disabled-login --home "$LE_CONFIG_HOME" --gecos "" --shell /bin/false --uid "$PUID" container
+        echo "** Added user 'container' with UID: '$PUID'"
+    fi
 
     if [[ $PGID != 0 && $PGID != "$PUID" ]]; then
         addgroup --gid "$PGID" container_group

@@ -46,11 +46,11 @@ can be updated to point to new Docker images.
 | :--- | :--- | :---: | :--- |
 | `latest` | Latest source available from acme.sh&#8203; with latest OS updates | `ubuntu:latest` | Built daily |
 | `stable` | Latest released version available from acme.sh&#8203; with latest OS updates | `ubuntu:20.04` | Built at least once a month |
-| `2.9.0` | acme.sh&#8203; version `2.9.0` with latest OS updates | `ubuntu:20.04` | Built at least once a month |
+| `3.0.2` | acme.sh&#8203; version `3.0.2` with latest OS updates | `ubuntu:20.04` | Built at least once a month |
 | `2.8.9` | acme.sh&#8203; version `2.8.9` with latest OS updates | `ubuntu:20.04` | Built at least once a month |
 
 * For production application, it is recommended to use the `stable` tag.
-* To use a different base image OS prefix any of the above tags with `<base_image_os>-`. For example `rockylinux-latest`, `amazonlinux-stable` or `alpinelinux-2.9.0`. See [Base Images and Architectures](#base-images-and-architectures) for a list of available base OS.
+* To use a different base image OS prefix any of the above tags with `<base_image_os>-`. For example `rockylinux-latest`, `amazonlinux-stable` or `alpinelinux-3.0.2`. See [Base Images and Architectures](#base-images-and-architectures) for a list of available base OS.
 * See [Published Images](#published-images) for other tags that are available.
 
 ### acme.sh&#8203; Command Line
@@ -228,7 +228,7 @@ tags. Depending on the end use case, you can choose the appropriate tag.
 For clarification purposes, the term **latest** refers to latest at build
 time and if the tag is not dated, it will be kept up to date at the frequency stated.
 
-Additionally, the term **stable** refers to the stable version of acme.sh&#8203 which
+Additionally, the term **stable** refers to the stable version of acme.sh&#8203; which
 is equal to the latest **released** version. If the tag contains stable and is not
 dated it is going to get up to date OS patches at the frequency stated.
 
@@ -240,13 +240,13 @@ information.
 | Tag | Purpose | Example | Update Frequency | Branch |
 |---|---|---|---|---|
 | latest | The latest acme.sh&#8203; with up to date OS patches based on latest Ubuntu base image. | latest | Daily | main |
-| stable | The latest stable release of acme.sh&#8203; with up to date OS patches based on latest Ubuntu image. | stable | At least once a month | stable-2.9.0 |
-| \<acme.sh-version\> | The release of acme.sh&#8203; as embedded in the tag with up to date OS patches based on latest Ubuntu image. | 2.9.0 | See Release Life Cycle | stable-\<acme.sh-version\> |
+| stable | The latest stable release of acme.sh&#8203; with up to date OS patches based on latest Ubuntu image. | stable | At least once a month | stable-3.0.2 |
+| \<acme.sh-version\> | The release of acme.sh&#8203; as embedded in the tag with up to date OS patches based on latest Ubuntu image. | 3.0.2 | See Release Life Cycle | stable-\<acme.sh-version\> |
 | \<base_os\>-latest | The latest build of acme.sh&#8203; with up to date base OS patches. | - alpinelinux-latest<br> - amazonlinux-latest<br> - oraclelinux-latest<br> - rockylinux-latest<br> - ubunut-latest | Daily | main |
 | \<base_os\>-stable | The most recent stable release of acme.sh&#8203; with up to date base OS patches. | - alpinelinux-stable<br> - amazonlinux-stable<br> - oraclelinux-stable<br> - rockylinux-stable<br> - ubunut-stable | At least once a month | main |
-| \<base_os\>-\<acme.sh-version\> | The release of acme.sh&#8203; as embedded in the tag with up to date OS patches based on latest base OS image.<br>While the acme.sh&#8203; version will remain static, this image tag will be regularly updated with latest OS patches applied. | - alpinelinux-2.9.0<br> - amazonlinux-2.9.0<br> - oraclelinux-2.9.0<br> - rockylinux-2.9.0<br> - ubunut-2.9.0 | See Release Life Cycle | stable-\<acme.sh-version\> |
+| \<base_os\>-\<acme.sh-version\> | The release of acme.sh&#8203; as embedded in the tag with up to date OS patches based on latest base OS image.<br>While the acme.sh&#8203; version will remain static, this image tag will be regularly updated with latest OS patches applied. | - alpinelinux-3.0.2<br> - amazonlinux-3.0.2<br> - oraclelinux-3.0.2<br> - rockylinux-3.0.2<br> - ubunut-3.0.2 | See Release Life Cycle | stable-\<acme.sh-version\> |
 | \<base_os\>-latest-\<YYYYMMDD\> | The latest build of acme.sh&#8203; at <b><i>build time</b></i> with up to date OS patches based on latest base OS image.<br>The image tag is dated for downstream use cases where a static reference is required.<br>Keep in mind, these images do not have OS patches applied regularly nor is acme.sh&#8203; ever updated. | - alpinelinux-latest-20210425<br> - amazonlinux-latest-20210425 - oraclelinux-latest-20210425<br> - rockylinux-latest-20210425<br> - ubunut-latest-20210425 | Once | main |
-| \<base_os\>-\<acme.sh-version\>-\<YYYYMMDD\> | The release of acme.sh&#8203; as embedded in the tag with up to date OS patches based on latest base OS image.<br><br>The image tag is dated for downstream use cases where a static reference is required.<br><br>Keep in mind, these images do not have OS patches applied regularly nor is acme.sh&#8203; ever updated. | - alpinelinux-2.9.0-20210425<br> - amazonlinux-2.9.0-20210425 - oraclelinux-2.9.0-20210425<br> - rockylinux-2.9.0-20210425<br> - ubunut-2.9.0-20210425 | Once | stable-\<acme.sh-version\> |
+| \<base_os\>-\<acme.sh-version\>-\<YYYYMMDD\> | The release of acme.sh&#8203; as embedded in the tag with up to date OS patches based on latest base OS image.<br><br>The image tag is dated for downstream use cases where a static reference is required.<br><br>Keep in mind, these images do not have OS patches applied regularly nor is acme.sh&#8203; ever updated. | - alpinelinux-3.0.2-20210425<br> - amazonlinux-3.0.2-20210425 - oraclelinux-3.0.2-20210425<br> - rockylinux-3.0.2-20210425<br> - ubunut-3.0.2-20210425 | Once | stable-\<acme.sh-version\> |
 
 ---
 
