@@ -33,7 +33,6 @@ env:
   latest_base_os: ubuntu
   stable_base_os: ubuntu
   latest_acmesh_version: master
-  stable_acmesh_version: 2.9.0
   latest_branch: main
   stable_branch_prefix: stable/
 
@@ -127,6 +126,8 @@ jobs:
       - name: Checkout Code
         id: checkout_code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -143,7 +144,6 @@ jobs:
           DATE_STAMP: ${{ needs.prepare.outputs.date_stamp }}
           PLATFORM: ${{ matrix.platform }}
           LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
-          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
           LATEST_BRANCH: ${{ env.latest_branch }}
           STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
         run: .github/workflows/scripts/get_parameters.sh
@@ -254,7 +254,7 @@ jobs:
         run: .github/workflows/scripts/docker_manifest.py dated_os
         env:
           LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
-          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ steps.get_parameters.outputs.acmesh_latest_stable_version}}
           LATEST_BRANCH: ${{ env.latest_branch }}
           STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
           LATEST_BASE_OS: ${{ env.latest_base_os }}
@@ -287,7 +287,7 @@ jobs:
         run: .github/workflows/scripts/docker_manifest.py dynamic_os
         env:
           LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
-          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ steps.get_parameters.outputs.acmesh_latest_stable_version}}
           LATEST_BRANCH: ${{ env.latest_branch }}
           STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
           LATEST_BASE_OS: ${{ env.latest_base_os }}
@@ -320,7 +320,7 @@ jobs:
         run: .github/workflows/scripts/docker_manifest.py dynamic
         env:
           LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
-          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ steps.get_parameters.outputs.acmesh_latest_stable_version}}
           LATEST_BRANCH: ${{ env.latest_branch }}
           STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
           LATEST_BASE_OS: ${{ env.latest_base_os }}
@@ -353,7 +353,7 @@ jobs:
         run: .github/workflows/scripts/docker_manifest.py acmesh_versioned
         env:
           LATEST_ACMESH_VERSION: ${{ env.latest_acmesh_version }}
-          STABLE_ACMESH_VERSION: ${{ env.stable_acmesh_version }}
+          STABLE_ACMESH_VERSION: ${{ steps.get_parameters.outputs.acmesh_latest_stable_version}}
           LATEST_BRANCH: ${{ env.latest_branch }}
           STABLE_BRANCH_PREFIX: ${{ env.stable_branch_prefix }}
           LATEST_BASE_OS: ${{ env.latest_base_os }}
