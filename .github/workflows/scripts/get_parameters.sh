@@ -40,12 +40,12 @@ get_parameters() {
         if [[ $GITHUB_BASE_REF == "$LATEST_BRANCH" ]]; then
             echo "** Pull Request is based on latest branch $GITHUB_BASE_REF will use $LATEST_ACMESH_VERSION"
             ACMESH_VERSION="$LATEST_ACMESH_VERSION"
-        elif [[ $GITHUB_BASE_REF == "$STABLE_BRANCH" ]]; then
-            echo "** Pull Request is based on stable branch $GITHUB_BASE_REF will use $STABLE_ACMESH_VERSION"
-            ACMESH_VERSION="$STABLE_ACMESH_VERSION"
+        elif [[ $GITHUB_BASE_REF =~ $STABLE_BRANCH_PREFIX_ESCAPED ]]; then
+            ACMESH_VERSION="${GITHUB_BASE_REF#$STABLE_BRANCH_PREFIX_ESCAPED}"
+            echo "** Pull Request is based on stable branch $GITHUB_BASE_REF will use $ACMESH_VERSION"
         else
             echo "** Pull Request is based on $GITHUB_BASE_REF branch and no rule for acme version set, will use $LATEST_ACMESH_VERSION"
-            ACMESH_VERSION="${GITHUB_BASE_REF}"
+            ACMESH_VERSION="${LATEST_ACMESH_VERSION}"
         fi
         # Tag Format: <base_os>-<acmesh-version>-<date-stamp>-<platform>-pr<pr_number>
         DOCKER_IMAGE_TAG="${BASE_IMAGE}-${ACMESH_VERSION}-${DATE_STAMP}-$(echo "${PLATFORM}" | tr '/' '_')-pr${PULL_REQUEST_NUMBER}s"
