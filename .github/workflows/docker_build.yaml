@@ -3,7 +3,7 @@ name: Docker Build
 on:
   push:
     branches:
-      - main
+      - stable/2.9.0
     paths-ignore:
       - '*.md'
       - .github/workflows/shell_linting.yaml
@@ -11,7 +11,7 @@ on:
       - .github/workflows/create_stable_branch.yaml
   pull_request:
     branches:
-      - main
+      - stable/2.9.0
     paths-ignore:
       - '*.md'
       - .github/workflows/shell_linting.yaml
