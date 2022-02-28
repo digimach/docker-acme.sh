@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
 # shellcheck shell=bash
 
 # This cont-init will only be applied if ACMESH_DAEMON is set to "1" which implies
