@@ -34,7 +34,7 @@ RUN mkdir -p ${s6_artifacts_dir} \
 
 # Perform checksum on s6-overlay artifacts
 RUN echo "$(cat /tmp/s6-overlay-noarch.tar.xz.sha256 | cut -f1 -d" ")  /tmp/s6-overlay-noarch.tar.xz" | sha256sum -cs 
-RUN echo "$(cat /tmp/s6-overlay.tar.xz.sha256| cut -f1 -d" ")  /tmp/s6-overlay.tar.xz" | sha256sum -cs 
+RUN echo "$(cat /tmp/s6-overlay.tar.xz.sha256 | cut -f1 -d" ")  /tmp/s6-overlay.tar.xz" | sha256sum -cs 
 
 # Extract s6-overlay artifacts
 RUN tar -C ${s6_artifacts_dir} --xz --extract --preserve-permissions --file /tmp/s6-overlay-noarch.tar.xz \
