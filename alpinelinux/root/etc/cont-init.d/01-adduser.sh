@@ -1,6 +1,7 @@
-#!/usr/bin/with-contenv bash
+#!/command/with-contenv bash
 # shellcheck shell=bash
 
+export PATH=$PATH:/usr/sbin/ # s6 3.0.0.2 doesn't set PATH properly
 set -eu
 
 if [[ $EUID -ne 0 ]]; then
