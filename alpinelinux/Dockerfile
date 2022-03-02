@@ -28,7 +28,7 @@ RUN mkdir -p ${s6_artifacts_dir} \
     && curl --fail --location --remote-header-name --output "/tmp/s6-overlay-noarch.tar.xz.sha256" \
         https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-noarch-${s6_overlay_version}.tar.xz.sha256 \
     && curl --fail --location --remote-header-name --output "/tmp/s6-overlay.tar.xz" \
-        https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-x86_64-${s6_overlay_version}.tar.xz \
+        https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-${CPU_ARCH}-${s6_overlay_version}.tar.xz \
     && curl --fail --location --remote-header-name --output "/tmp/s6-overlay.tar.xz.sha256" \
         https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-${CPU_ARCH}-${s6_overlay_version}.tar.xz.sha256
 
