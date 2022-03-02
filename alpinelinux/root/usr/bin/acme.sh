@@ -1,4 +1,4 @@
-#!/bin/bash -ue
+#!/command/with-contenv bash
 
 LOCKFILE="$LE_CONFIG_HOME/run.lock"
 
