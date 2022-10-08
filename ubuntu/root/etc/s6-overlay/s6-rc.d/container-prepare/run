@@ -1,0 +1,7 @@
+#!/command/with-contenv bash
+
+/etc/s6-overlay/s6-rc.d/container-prepare/scripts/01-adduser.sh
+
+/etc/s6-overlay/s6-rc.d/container-prepare/scripts/10-create-dirs.sh
+
+/etc/s6-overlay/s6-rc.d/container-prepare/scripts/98-set-permissions.sh

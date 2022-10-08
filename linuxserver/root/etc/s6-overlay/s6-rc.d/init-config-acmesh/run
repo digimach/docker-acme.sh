@@ -1,0 +1,7 @@
+#!/command/with-contenv bash
+
+/etc/s6-overlay/s6-rc.d/init-config-acmesh/scripts/10-create-dirs.sh
+
+/etc/s6-overlay/s6-rc.d/init-config-acmesh/scripts/98-set-permissions.sh
+
+/etc/s6-overlay/s6-rc.d/init-config-acmesh/scripts/99-install-acmesh.sh

@@ -4,13 +4,13 @@ FROM ubuntu:latest as acmesh_artifacts
 RUN apt-get --yes update \
     && apt-get --yes upgrade
 
-RUN apt-get --yes install curl gzip tar
+RUN apt-get --yes install curl gzip tar xz-utils
 
 # Set ARGS
 ARG acmesh_version=master
 ARG acmesh_link="https://github.com/acmesh-official/acme.sh/archive/${acmesh_version}.tar.gz"
 ARG acmesh_artifacts_dir=/opt/acmesh
-ARG s6_overlay_version=2.2.0.3
+ARG s6_overlay_version=3.1.2.1
 
 # Download and place acme.sh inside the container
 RUN mkdir -p "${acmesh_artifacts_dir}" \
@@ -20,8 +20,17 @@ RUN mkdir -p "${acmesh_artifacts_dir}" \
     && "${acmesh_artifacts_dir}"/acme.sh --help
 
 # Download and install s6-overlay-builder
-ADD https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-amd64-installer /tmp/
-RUN chmod +x /tmp/s6-overlay-amd64-installer
+RUN mkdir -p /s6-overlay-install
+# ADD https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-noarch.tar.xz /tmp
+# RUN tar --directory /s6-artifact -Jxpf /tmp/s6-overlay-noarch.tar.xz
+# ADD https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-x86_64.tar.xz /tmp
+# RUN tar --directory /s6-artifact -Jxpf /tmp/s6-overlay-x86_64.tar.xz
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-noarch.tar.xz /tmp
+RUN tar -C /s6-overlay-install -Jxpf /tmp/s6-overlay-noarch.tar.xz
+RUN ls -alrt /s6-overlay-install
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${s6_overlay_version}/s6-overlay-x86_64.tar.xz /tmp
+RUN tar -C /s6-overlay-install -Jxpf /tmp/s6-overlay-x86_64.tar.xz
+RUN ls -alrt /s6-overlay-install
 
 FROM ubuntu:latest
 
@@ -30,7 +39,7 @@ ARG auto_upgrade=0
 ARG acme_working_dir=/usr/lib/acmesh
 
 COPY --from=acmesh_artifacts "$acmesh_artifacts_dir" "$acmesh_artifacts_dir"
-COPY --from=acmesh_artifacts "/tmp/s6-overlay-amd64-installer" "/tmp/s6-overlay-amd64-installer"
+COPY --from=acmesh_artifacts "/s6-overlay-install/" "/"
 
 # Set runtime variables
 ENV LE_WORKING_DIR="$acme_working_dir"
@@ -52,13 +61,12 @@ RUN apt-get update \
     && apt-get --yes upgrade \
     && apt-get --yes autoremove \
     && apt-get --yes purge \
-    && apt-get --yes clean \
-    && cd "$acmesh_artifacts_dir" || exit \
+    && apt-get --yes clean
+
+RUN cd "$acmesh_artifacts_dir" || exit \
     && ./acme.sh --install --no-cron --no-profile --auto-upgrade 0 \
     && chmod -R +x "$LE_WORKING_DIR" \
-    # install s6-overlay
-    && /tmp/s6-overlay-amd64-installer / \
-    && rm -rf /tmp/s6-overlay-amd64-installer
+    && ls -alrt /init
 
 COPY root/ /
 
@@ -67,3 +75,4 @@ VOLUME $LE_CERT_HOME
 VOLUME $LE_LOG_DIR
 
 ENTRYPOINT ["/init"]
+CMD [""]
