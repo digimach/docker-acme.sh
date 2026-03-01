@@ -241,7 +241,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Download all tag meta artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v8
         with:
           path: tags_meta/
 
@@ -274,7 +274,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Download all manifest artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v8
         with:
           path: tags_meta/
 
@@ -307,7 +307,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Download all manifest artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v8
         with:
           path: tags_meta/
 
@@ -340,7 +340,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Download all manifest artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v8
         with:
           path: tags_meta/
 
