@@ -223,7 +223,7 @@ jobs:
           echo "DOCKER_IMAGE_TAG=$DOCKER_IMAGE_TAG" >> /tmp/tag.txt
 
       - name: Upload tag meta file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.get_parameters.outputs.tag }}
           path: /tmp/tag.txt
