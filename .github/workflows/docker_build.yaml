@@ -150,7 +150,7 @@ jobs:
         run: .github/workflows/scripts/get_parameters.sh
 
       - name: Build image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.base_image }}
           platforms: ${{ matrix.platform }}
