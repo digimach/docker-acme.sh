@@ -20,7 +20,7 @@ RUN mkdir -p "${acmesh_artifacts_dir}" \
 
 #--------------------------------------------#
 
-FROM ghcr.io/linuxserver/baseimage-alpine:3.16
+FROM ghcr.io/linuxserver/baseimage-alpine:3.24
 
 ARG acmesh_artifacts_dir=/opt/acmesh
 ARG auto_upgrade=0
