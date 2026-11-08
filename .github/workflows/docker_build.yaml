@@ -120,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       local_docker_registry:
-        image: registry:2
+        image: registry:3
         ports:
           - 80:5000
     steps:
